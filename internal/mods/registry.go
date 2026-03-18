@@ -1,6 +1,8 @@
 package mods
 
 import (
+	"sync"
+
 	"gaussgo/internal/contracts"
 	"gaussgo/internal/registry"
 )
@@ -10,6 +12,7 @@ type Registry struct {
 }
 
 type Repository struct {
+	mu       sync.RWMutex
 	modsDir  string
 	enabled  map[string]bool
 	statuses []contracts.ModStatus
@@ -67,6 +70,17 @@ func (r *Repository) Refresh() ([]contracts.ModStatus, error) {
 		return nil, err
 	}
 
+	r.mu.Lock()
 	r.statuses = append([]contracts.ModStatus(nil), statuses...)
+	r.mu.Unlock()
+
+	r.mu.RLock()
+	defer r.mu.RUnlock()
 	return append([]contracts.ModStatus(nil), r.statuses...), nil
+}
+
+func (r *Repository) LastStatuses() []contracts.ModStatus {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	return append([]contracts.ModStatus(nil), r.statuses...)
 }

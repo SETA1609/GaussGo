@@ -1,10 +1,10 @@
 package mods
 
 import (
-	"fmt"
 	"regexp"
 	"strings"
 
+	"gaussgo/internal/apperrors"
 	"gaussgo/internal/contracts"
 )
 
@@ -12,26 +12,26 @@ var semverRe = regexp.MustCompile(`^\d+\.\d+\.\d+$`)
 
 func ValidateManifest(m contracts.ModManifest) error {
 	if strings.TrimSpace(m.ID) == "" {
-		return fmt.Errorf("invalid manifest: id is required")
+		return apperrors.New(apperrors.CodeValidation, apperrors.ErrorTypeInput, "invalid manifest: id is required")
 	}
 	if strings.TrimSpace(m.Name) == "" {
-		return fmt.Errorf("invalid manifest %s: name is required", m.ID)
+		return apperrors.New(apperrors.CodeValidation, apperrors.ErrorTypeInput, "invalid manifest "+m.ID+": name is required")
 	}
 	if !semverRe.MatchString(strings.TrimSpace(m.Version)) {
-		return fmt.Errorf("invalid manifest %s: version must be semver", m.ID)
+		return apperrors.New(apperrors.CodeValidation, apperrors.ErrorTypeInput, "invalid manifest "+m.ID+": version must be semver")
 	}
 	if strings.TrimSpace(m.Entry) == "" {
-		return fmt.Errorf("invalid manifest %s: entry is required", m.ID)
+		return apperrors.New(apperrors.CodeValidation, apperrors.ErrorTypeInput, "invalid manifest "+m.ID+": entry is required")
 	}
 
 	if strings.TrimSpace(m.Localization.Default) == "" {
-		return fmt.Errorf("invalid manifest %s: localization.default is required", m.ID)
+		return apperrors.New(apperrors.CodeValidation, apperrors.ErrorTypeInput, "invalid manifest "+m.ID+": localization.default is required")
 	}
 	if len(m.Localization.Supported) == 0 {
-		return fmt.Errorf("invalid manifest %s: localization.supported is required", m.ID)
+		return apperrors.New(apperrors.CodeValidation, apperrors.ErrorTypeInput, "invalid manifest "+m.ID+": localization.supported is required")
 	}
 	if strings.TrimSpace(m.Localization.Path) == "" {
-		return fmt.Errorf("invalid manifest %s: localization.path is required", m.ID)
+		return apperrors.New(apperrors.CodeValidation, apperrors.ErrorTypeInput, "invalid manifest "+m.ID+": localization.path is required")
 	}
 
 	foundDefault := false
@@ -42,23 +42,28 @@ func ValidateManifest(m contracts.ModManifest) error {
 		}
 	}
 	if !foundDefault {
-		return fmt.Errorf("invalid manifest %s: localization.default must be in localization.supported", m.ID)
+		return apperrors.New(apperrors.CodeValidation, apperrors.ErrorTypeInput, "invalid manifest "+m.ID+": localization.default must be in localization.supported")
 	}
 
+	seenDeps := make(map[string]struct{}, len(m.Dependencies))
 	for _, dep := range m.Dependencies {
 		if strings.TrimSpace(dep.ID) == "" {
-			return fmt.Errorf("invalid manifest %s: dependency id is required", m.ID)
+			return apperrors.New(apperrors.CodeValidation, apperrors.ErrorTypeInput, "invalid manifest "+m.ID+": dependency id is required")
 		}
+		if _, exists := seenDeps[dep.ID]; exists {
+			return apperrors.New(apperrors.CodeValidation, apperrors.ErrorTypeInput, "invalid manifest "+m.ID+": duplicate dependency id "+dep.ID)
+		}
+		seenDeps[dep.ID] = struct{}{}
 		if dep.ID == m.ID {
-			return fmt.Errorf("invalid manifest %s: self dependency is not allowed", m.ID)
+			return apperrors.New(apperrors.CodeValidation, apperrors.ErrorTypeInput, "invalid manifest "+m.ID+": self dependency is not allowed")
 		}
 		if !isValidConstraint(dep.Version) {
-			return fmt.Errorf("invalid manifest %s: dependency version constraint is invalid for %s", m.ID, dep.ID)
+			return apperrors.New(apperrors.CodeValidation, apperrors.ErrorTypeInput, "invalid manifest "+m.ID+": dependency version constraint is invalid for "+dep.ID)
 		}
 	}
 
 	if m.ID == "core" && len(m.Dependencies) > 0 {
-		return fmt.Errorf("invalid manifest core: dependencies must be empty")
+		return apperrors.New(apperrors.CodeValidation, apperrors.ErrorTypeInput, "invalid manifest core: dependencies must be empty")
 	}
 
 	return nil
@@ -87,5 +92,5 @@ func EnforceCorePresence(manifests []contracts.ModManifest) error {
 		}
 	}
 
-	return fmt.Errorf("core mod is required")
+	return apperrors.New(apperrors.CodeCoreRequired, apperrors.ErrorTypeDomain, "core mod is required")
 }

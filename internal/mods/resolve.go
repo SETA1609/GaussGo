@@ -1,9 +1,9 @@
 package mods
 
 import (
-	"fmt"
 	"sort"
 
+	"gaussgo/internal/apperrors"
 	"gaussgo/internal/contracts"
 )
 
@@ -23,9 +23,14 @@ func ResolveLoadOrder(manifests []contracts.ModManifest) ([]string, error) {
 		if _, ok := inDegree[m.ID]; !ok {
 			inDegree[m.ID] = 0
 		}
+		seenDeps := make(map[string]struct{}, len(m.Dependencies))
 		for _, dep := range m.Dependencies {
+			if _, duplicate := seenDeps[dep.ID]; duplicate {
+				continue
+			}
+			seenDeps[dep.ID] = struct{}{}
 			if _, exists := manifestByID[dep.ID]; !exists {
-				return nil, fmt.Errorf("mod %s has missing dependency %s", m.ID, dep.ID)
+				return nil, apperrors.New(apperrors.CodeDependency, apperrors.ErrorTypeDomain, "mod "+m.ID+" has missing dependency "+dep.ID)
 			}
 			adj[dep.ID] = append(adj[dep.ID], m.ID)
 			inDegree[m.ID]++
@@ -34,7 +39,7 @@ func ResolveLoadOrder(manifests []contracts.ModManifest) ([]string, error) {
 
 	queue := make([]string, 0, len(manifests))
 	if inDegree["core"] != 0 {
-		return nil, fmt.Errorf("core must not depend on other mods")
+		return nil, apperrors.New(apperrors.CodeDependency, apperrors.ErrorTypeDomain, "core must not depend on other mods")
 	}
 	queue = append(queue, "core")
 	for id, degree := range inDegree {
@@ -70,10 +75,10 @@ func ResolveLoadOrder(manifests []contracts.ModManifest) ([]string, error) {
 	}
 
 	if len(order) != len(manifests) {
-		return nil, fmt.Errorf("dependency cycle detected")
+		return nil, apperrors.New(apperrors.CodeDependency, apperrors.ErrorTypeDomain, "dependency cycle detected")
 	}
 	if order[0] != "core" {
-		return nil, fmt.Errorf("core must be first in load order")
+		return nil, apperrors.New(apperrors.CodeCoreRequired, apperrors.ErrorTypeDomain, "core must be first in load order")
 	}
 
 	return order, nil

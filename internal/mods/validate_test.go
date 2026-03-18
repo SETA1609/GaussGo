@@ -64,3 +64,31 @@ func TestValidateManifestRejectsDuplicateDependencyID(t *testing.T) {
 		t.Fatal("expected duplicate dependency id error")
 	}
 }
+
+func TestValidateManifestRejectsSelfDependency(t *testing.T) {
+	m := validManifest()
+	m.Dependencies = []contracts.ModDependency{{ID: "linearAlgebra", Version: ">=0.1.0"}}
+	if err := ValidateManifest(m); err == nil {
+		t.Fatal("expected self dependency error")
+	}
+}
+
+func TestValidateManifestRejectsMissingRequiredFields(t *testing.T) {
+	m := validManifest()
+	m.ID = ""
+	if err := ValidateManifest(m); err == nil {
+		t.Fatal("expected missing id error")
+	}
+
+	m = validManifest()
+	m.Name = ""
+	if err := ValidateManifest(m); err == nil {
+		t.Fatal("expected missing name error")
+	}
+
+	m = validManifest()
+	m.Entry = ""
+	if err := ValidateManifest(m); err == nil {
+		t.Fatal("expected missing entry error")
+	}
+}

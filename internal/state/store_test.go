@@ -1,6 +1,8 @@
 package state
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 
 	"gaussgo/internal/contracts"
@@ -22,6 +24,45 @@ func TestCreateInitializesCoreAndLocale(t *testing.T) {
 	}
 	if created.UI.Locale != "en" {
 		t.Fatalf("expected locale en, got %s", created.UI.Locale)
+	}
+}
+
+func TestLoadMissingStateID(t *testing.T) {
+	store := NewStore(t.TempDir())
+	if _, err := store.Load("missing"); err == nil {
+		t.Fatal("expected missing state load error")
+	}
+}
+
+func TestLoadMalformedJSON(t *testing.T) {
+	root := t.TempDir()
+	store := NewStore(root)
+	if err := os.WriteFile(filepath.Join(root, "state-bad.json"), []byte("{"), 0o644); err != nil {
+		t.Fatalf("write malformed file: %v", err)
+	}
+	if _, err := store.Load("bad"); err == nil {
+		t.Fatal("expected malformed json error")
+	}
+}
+
+func TestLoadUnsupportedSchema(t *testing.T) {
+	root := t.TempDir()
+	store := NewStore(root)
+	if err := os.WriteFile(filepath.Join(root, "state-bad.json"), []byte(`{
+		"schemaVersion": 99,
+		"stateId": "bad",
+		"profileName": "Bad",
+		"createdAt": "2026-03-18T00:00:00Z",
+		"updatedAt": "2026-03-18T00:00:00Z",
+		"modsAtCreation": [],
+		"enabledMods": ["core"],
+		"ui": {"locale": "en"},
+		"progress": {}
+	}`), 0o644); err != nil {
+		t.Fatalf("write unsupported schema file: %v", err)
+	}
+	if _, err := store.Load("bad"); err == nil {
+		t.Fatal("expected unsupported schema error")
 	}
 }
 

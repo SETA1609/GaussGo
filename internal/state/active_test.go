@@ -35,6 +35,18 @@ func TestStoreSetAndGetActive(t *testing.T) {
 	}
 }
 
+func TestGetActiveMissingPointer(t *testing.T) {
+	if _, err := GetActive(t.TempDir()); err == nil {
+		t.Fatal("expected missing active pointer error")
+	}
+}
+
+func TestSetActiveEmptyStateID(t *testing.T) {
+	if err := SetActive(t.TempDir(), "   "); err == nil {
+		t.Fatal("expected empty stateID validation error")
+	}
+}
+
 func TestSaveUpdatesTimestamp(t *testing.T) {
 	store := NewStore(t.TempDir())
 	state, err := store.Create("Time Test")

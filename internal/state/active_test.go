@@ -1,6 +1,8 @@
 package state
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 )
@@ -44,6 +46,21 @@ func TestGetActiveMissingPointer(t *testing.T) {
 func TestSetActiveEmptyStateID(t *testing.T) {
 	if err := SetActive(t.TempDir(), "   "); err == nil {
 		t.Fatal("expected empty stateID validation error")
+	}
+}
+
+func TestGetActiveNormalizesLegacyFileStyleStateID(t *testing.T) {
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "active.txt"), []byte("state-default.json\n"), 0o600); err != nil {
+		t.Fatalf("write active pointer failed: %v", err)
+	}
+
+	stateID, err := GetActive(dir)
+	if err != nil {
+		t.Fatalf("get active failed: %v", err)
+	}
+	if stateID != "default" {
+		t.Fatalf("expected normalized default, got %s", stateID)
 	}
 }
 

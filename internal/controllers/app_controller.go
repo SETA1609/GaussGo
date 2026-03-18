@@ -56,3 +56,31 @@ func (c *AppController) LoadActiveState() (contracts.State, error) {
 
 	return st, nil
 }
+
+func (c *AppController) CreateAndActivateState(profileName string) (contracts.State, error) {
+	st, err := c.stateStore.Create(profileName)
+	if err != nil {
+		return contracts.State{}, err
+	}
+	if err := c.stateStore.SetActive(st.StateID); err != nil {
+		return contracts.State{}, err
+	}
+	emitEvent(c.eventBus, c.logger, EventStateCreated, "app_controller", map[string]any{
+		"stateId": st.StateID,
+		"profile": profileName,
+	})
+	if c.logger != nil {
+		c.logger.Info("state created and activated", map[string]any{"stateId": st.StateID})
+	}
+	c.ctx.ActiveStateID = "" // let LoadActiveState pick up the pointer
+	return c.LoadActiveState()
+}
+
+func (c *AppController) ActivateState(stateID string) error {
+	if err := c.stateStore.SetActive(stateID); err != nil {
+		return err
+	}
+	c.ctx.ActiveStateID = "" // force re-read
+	_, err := c.LoadActiveState()
+	return err
+}

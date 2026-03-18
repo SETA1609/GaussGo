@@ -8,6 +8,7 @@ import (
 
 const (
 	EventStateLoaded   = "state.loaded"
+	EventStateCreated  = "state.created"
 	EventLocaleChanged = "locale.changed"
 	EventModsRefreshed = "mods.refreshed"
 	EventModsToggled   = "mods.toggled"

@@ -65,6 +65,14 @@ func GetActive(statesDir string) (string, error) {
 	if stateID == "" {
 		return "", apperrors.New(apperrors.CodeValidation, apperrors.ErrorTypeInput, "active pointer is empty")
 	}
+	stateID = normalizeActivePointerStateID(stateID)
 
 	return stateID, nil
+}
+
+func normalizeActivePointerStateID(stateID string) string {
+	stateID = strings.TrimSpace(stateID)
+	stateID = strings.TrimPrefix(stateID, "state-")
+	stateID = strings.TrimSuffix(stateID, ".json")
+	return stateID
 }

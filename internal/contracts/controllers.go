@@ -8,6 +8,8 @@ type SceneController interface {
 
 type AppController interface {
 	LoadActiveState() (State, error)
+	CreateAndActivateState(profileName string) (State, error)
+	ActivateState(stateID string) error
 }
 
 type LearningController interface {

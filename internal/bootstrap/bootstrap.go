@@ -2,6 +2,7 @@ package bootstrap
 
 import (
 	"gaussgo/internal/apperrors"
+	"gaussgo/internal/concurrency"
 	"gaussgo/internal/contracts"
 	"gaussgo/internal/mods"
 )
@@ -13,14 +14,16 @@ type Diagnostics struct {
 }
 
 type RuntimeServices struct {
-	Logger   contracts.LoggingService
-	EventBus contracts.EventBusService
+	Logger      contracts.LoggingService
+	EventBus    contracts.EventBusService
+	Concurrency contracts.ConcurrencyService
 }
 
 func DefaultServices() RuntimeServices {
 	return RuntimeServices{
-		Logger:   NewStdLogger(),
-		EventBus: NewInMemoryEventBus(),
+		Logger:      NewStdLogger(),
+		EventBus:    NewInMemoryEventBus(),
+		Concurrency: concurrency.DefaultService(),
 	}
 }
 
@@ -32,6 +35,9 @@ func Bootstrap(modsDir string, services RuntimeServices) (Diagnostics, error) {
 	}
 	if services.EventBus == nil {
 		services.EventBus = NewInMemoryEventBus()
+	}
+	if services.Concurrency == nil {
+		services.Concurrency = concurrency.DefaultService()
 	}
 
 	services.Logger.Info("bootstrap started", map[string]any{"modsDir": modsDir})

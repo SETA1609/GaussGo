@@ -56,3 +56,21 @@ Establish framework primitives: base registry, mod discovery, manifest validatio
 ## Exit Criteria
 - Runtime can print discovered mods with statuses and load order.
 - Refresh function returns deterministic updated mod snapshot.
+
+## Implementation Status
+- Implemented in:
+  - `internal/registry/base.go`
+  - `internal/registry/errors.go`
+  - `internal/mods/manifest.go`
+  - `internal/mods/discover.go`
+  - `internal/mods/validate.go`
+  - `internal/mods/resolve.go`
+  - `internal/mods/status.go`
+  - `internal/mods/registry.go`
+  - `internal/bootstrap/bootstrap.go`
+  - `internal/bootstrap/services.go`
+- Tests added:
+  - `internal/registry/base_test.go`
+  - `internal/mods/discover_test.go`
+  - `internal/mods/validate_test.go`
+  - `internal/mods/resolve_test.go`

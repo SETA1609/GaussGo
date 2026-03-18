@@ -66,3 +66,14 @@ Progress must support learning hub features:
 ## Exit Criteria
 - Multiple states can be created and loaded.
 - Current active state is tracked in `/states/active.txt`.
+
+## Implementation Status
+- Implemented in:
+  - `internal/state/model.go`
+  - `internal/state/validate.go`
+  - `internal/state/store.go`
+  - `internal/state/active.go`
+- Tests added:
+  - `internal/state/store_test.go`
+  - `internal/state/active_test.go`
+  - `internal/state/test_helpers_test.go`

@@ -11,6 +11,8 @@ Establish framework primitives: base registry, mod discovery, manifest validatio
 - `docs/contracts/runtime-context-v1.md`
 - `docs/contracts/controller-interfaces-v1.md`
 - `docs/contracts/i18n-resolution-v1.md`
+- `docs/contracts/logging-service-v1.md`
+- `docs/contracts/eventbus-service-v1.md`
 
 ## Scope
 - Generic base registry implementation.
@@ -29,6 +31,7 @@ Establish framework primitives: base registry, mod discovery, manifest validatio
 - `internal/mods/status.go`
 - `internal/mods/registry.go`
 - `internal/bootstrap/bootstrap.go`
+- `internal/bootstrap/services.go` (service wiring for logger and event bus)
 
 ## Required Rules
 - Fail fast if `/mods/core/manifest.json` is missing or invalid.

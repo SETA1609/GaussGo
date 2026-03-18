@@ -24,6 +24,9 @@ Without a contract-first foundation, parallel work causes drift across models, i
 - `docs/contracts/runtime-context-v1.md`
 - `docs/contracts/controller-interfaces-v1.md`
 - `docs/contracts/i18n-resolution-v1.md`
+- `docs/contracts/logging-service-v1.md`
+- `docs/contracts/eventbus-service-v1.md`
+- `docs/contracts/event-catalog-v1.md`
 
 Each contract must include:
 - Version identifier
@@ -37,6 +40,8 @@ Each contract must include:
 - `internal/contracts/state.go`
 - `internal/contracts/controllers.go`
 - `internal/contracts/i18n.go`
+- `internal/contracts/logging.go`
+- `internal/contracts/events.go`
 
 These stubs are minimal compile-time interfaces used by all phases.
 
@@ -44,7 +49,8 @@ These stubs are minimal compile-time interfaces used by all phases.
 - `internal/types/runtime_context.go` (must include `CurrentLocale`)
 - `internal/types/ids.go` (namespaced ID helpers)
 - `internal/errors/codes.go` (shared error codes)
-- `internal/errors/kinds.go`
+- `internal/errors/error_types.go`
+- `internal/types/events.go` (event envelope and metadata)
 
 ### 4) Tooling Baseline
 - `Makefile` targets:
@@ -73,6 +79,8 @@ Create `docs/integration-map.md` including:
 - Default locale is `en`.
 - Locale selection persists to `state.ui.locale`.
 - Mod refresh rescans and updates statuses, but does not auto-enable new mods.
+- Logging is structured and supports at least `debug`, `info`, `warn`, `error` levels.
+- Event bus supports emit and subscribe/unsubscribe semantics.
 
 ## Parallelization Strategy
 

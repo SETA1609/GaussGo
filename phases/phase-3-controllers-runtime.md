@@ -11,6 +11,8 @@ Introduce runtime controllers and context management separate from TUI rendering
 - `docs/contracts/runtime-context-v1.md`
 - `docs/contracts/state-schema-v1.md`
 - `docs/contracts/i18n-resolution-v1.md`
+- `docs/contracts/logging-service-v1.md`
+- `docs/contracts/eventbus-service-v1.md`
 
 ## Scope
 - App lifecycle orchestration through controllers.
@@ -18,6 +20,7 @@ Introduce runtime controllers and context management separate from TUI rendering
 - Learning session state selection (mod/unit/concept).
 - Mod enable/disable logic.
 - Locale selection controller.
+- Controller-level logging and event emission.
 
 ## Deliverables
 - `internal/controllers/app_controller.go`
@@ -25,6 +28,7 @@ Introduce runtime controllers and context management separate from TUI rendering
 - `internal/controllers/learning_controller.go`
 - `internal/controllers/mod_controller.go`
 - `internal/controllers/locale_controller.go`
+- `internal/controllers/events.go`
 - Runtime context model with locale.
 
 ## Runtime Context
@@ -42,6 +46,8 @@ Must include:
 - `LocaleController` supports `en` and `es` initially, extensible later.
 - `LocaleController` persists selected locale into active state.
 - `SceneController` owns navigation stack and back behavior.
+- Controllers emit domain events for state transitions and user actions.
+- Controllers use `LoggingService` for structured operational logs.
 
 ## Bootstrap Responsibilities
 - Boot order: mods -> state -> registries -> controllers -> tui.

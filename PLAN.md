@@ -18,6 +18,7 @@ The runtime/framework is the Go program itself. Mods integrate with the framewor
 - Controllers own runtime state transitions (`scene`, `learning`, `mods`, `locale`).
 - TUI scenes remain thin and call controllers.
 - Each mod declares localization in `manifest.json`.
+- Cross-cutting runtime services include `LoggingService` and `EventBusService`.
 
 ## Gap Tracker (Included in Plan)
 The following gaps are explicitly included and must be implemented:
@@ -28,6 +29,8 @@ The following gaps are explicitly included and must be implemented:
 5. Add and document `internal/bootstrap` package responsibilities.
 6. Provide explicit `ui` state object example (`locale`, `lastScene`, preferences).
 7. Keep heading levels and structure consistent across phase docs.
+8. Add contracts and wiring plan for `LoggingService`.
+9. Add contracts and wiring plan for `EventBusService` (emit + subscribe).
 
 ## Mod and State Rules (Canonical)
 - `core` manifest must exist or startup fails.
@@ -49,6 +52,8 @@ The following gaps are explicitly included and must be implemented:
 - Wrong answers include a clarification explaining the mistake and the correct reasoning.
 - Quiz/problem content should support LaTeX-style math formatting when renderer support exists, with plain-text fallback.
 - Helpers are callable operations/functions provided by enabled mods.
+- Runtime emits domain events for major actions (state load/save, locale change, mod refresh/toggle, quiz start/finish).
+- Runtime logs structured events through `LoggingService` with level and context fields.
 
 ## Phase Documents
 - Phase 0: `phases/phase-0-parallel-readiness.md`
@@ -79,6 +84,7 @@ The following gaps are explicitly included and must be implemented:
 - User can review step-by-step quiz solutions with clarifications for incorrect answers.
 - User can call helper functions provided by mods.
 - User can learn from at least one unit and save progress/state.
+- Runtime supports centralized structured logging and event emission/subscription for orchestration.
 
 ## Immediate Next Task
 Start with `phases/phase-0-parallel-readiness.md` to unlock parallel execution of the remaining phases.

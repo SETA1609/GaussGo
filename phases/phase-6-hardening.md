@@ -11,18 +11,22 @@ Stabilize runtime behavior, diagnostics, compatibility handling, and container e
 - `docs/contracts/state-schema-v1.md`
 - `docs/contracts/runtime-context-v1.md`
 - `docs/contracts/i18n-resolution-v1.md`
+- `docs/contracts/logging-service-v1.md`
+- `docs/contracts/eventbus-service-v1.md`
 
 ## Scope
 - Startup diagnostics and error UX.
 - Compatibility checks between state and current mod versions.
 - Migration placeholders for state schema evolution.
 - Container verification and runtime docs alignment.
+- Runtime logging quality and event observability checks.
 
 ## Deliverables
 - Compatibility validator for `modsAtCreation` vs discovered mods.
 - Human-readable warning model for UI and logs.
 - State migration scaffold (`schemaVersion` dispatcher).
 - Updated runbook snippets in docs.
+- Event and logging diagnostics checklist.
 
 ## Compatibility Rules
 - Warn when mod missing from current environment but present in state.

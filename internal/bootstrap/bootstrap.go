@@ -42,7 +42,7 @@ var newStoreForBootstrapRuntime = func(statesDir string) contracts.StateStore {
 
 func DefaultServices() RuntimeServices {
 	return RuntimeServices{
-		Logger:      NewStdLogger(),
+		Logger:      resolveDefaultLogger(),
 		EventBus:    NewInMemoryEventBus(),
 		Concurrency: concurrency.DefaultService(),
 	}

@@ -3,6 +3,7 @@ package bootstrap
 import (
 	"fmt"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -16,6 +17,10 @@ func NewStdLogger() contracts.LoggingService {
 	return StdLogger{}
 }
 
+func NewSilentLogger() contracts.LoggingService {
+	return silentLogger{}
+}
+
 func (StdLogger) Debug(msg string, fields map[string]any) { logLine("debug", msg, fields) }
 func (StdLogger) Info(msg string, fields map[string]any)  { logLine("info", msg, fields) }
 func (StdLogger) Warn(msg string, fields map[string]any)  { logLine("warn", msg, fields) }
@@ -23,6 +28,32 @@ func (StdLogger) Error(msg string, fields map[string]any) { logLine("error", msg
 
 func logLine(level string, msg string, fields map[string]any) {
 	_, _ = fmt.Fprintf(os.Stderr, "level=%s msg=%q fields=%v\n", level, msg, fields)
+}
+
+type silentLogger struct{}
+
+func (silentLogger) Debug(string, map[string]any) {}
+func (silentLogger) Info(string, map[string]any)  {}
+func (silentLogger) Warn(string, map[string]any)  {}
+func (silentLogger) Error(string, map[string]any) {}
+
+func resolveDefaultLogger() contracts.LoggingService {
+	if envBool(os.Getenv("GAUSSGO_QUIET")) || envBool(os.Getenv("GAUSSGO_SILENT")) {
+		return NewSilentLogger()
+	}
+	level := strings.ToLower(strings.TrimSpace(os.Getenv("GAUSSGO_LOG_LEVEL")))
+	if level == "" || level == "silent" || level == "off" || level == "none" {
+		return NewSilentLogger()
+	}
+	if level == "debug" || level == "info" || level == "warn" || level == "error" {
+		return NewStdLogger()
+	}
+	return NewStdLogger()
+}
+
+func envBool(value string) bool {
+	v := strings.TrimSpace(strings.ToLower(value))
+	return v == "1" || v == "true" || v == "yes" || v == "on"
 }
 
 type InMemoryEventBus struct {

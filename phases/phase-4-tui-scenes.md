@@ -79,3 +79,32 @@ Build Bubble Tea scenes on top of controllers, with thin view logic and strong U
 
 ## Exit Criteria
 - User can navigate full menu tree, refresh mods, and change language from UI.
+
+## Implementation Status
+- Implemented in:
+  - `internal/tui/app_model.go`
+  - `internal/tui/runner.go`
+  - `internal/tui/scenes/main_menu.go`
+  - `internal/tui/scenes/state_create.go`
+  - `internal/tui/scenes/state_load.go`
+  - `internal/tui/scenes/mod_settings.go`
+  - `internal/tui/scenes/language_select.go`
+  - `internal/tui/scenes/mod_select.go`
+  - `internal/tui/scenes/unit_select.go`
+  - `internal/tui/scenes/learning_hub.go`
+  - `internal/tui/scenes/statistics.go`
+  - `internal/tui/scenes/random_quiz_select.go`
+  - `internal/tui/scenes/helpers_scene.go`
+  - `internal/tui/scenes/helpers.go`
+  - `cmd/gaussgo/main.go` (startup now launches interactive scene runtime)
+- Tests added:
+  - `internal/tui/app_model_test.go` (navigation back behavior, refresh mods action, locale relabel check)
+- Reusable UI primitives extracted for cross-interface reuse:
+  - `internal/tui/components/theme.go`
+  - `internal/tui/components/menu.go`
+  - `internal/tui/components/layout.go`
+  - `internal/tui/components/status.go`
+- Data-driven scene schemas are now file-backed and loaded at runtime:
+  - `mods/core/ui/scenes/main_menu.json`
+  - `mods/core/ui/scenes/language_select.json`
+  - `internal/tui/scenes/menu_schema.go` (filesystem loader + schema binding)

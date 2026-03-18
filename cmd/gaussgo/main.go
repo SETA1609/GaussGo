@@ -3,16 +3,22 @@ package main
 import (
 	"errors"
 	"fmt"
+	"os"
 	"strings"
+
+	tea "charm.land/bubbletea/v2"
 
 	"gaussgo/internal/apperrors"
 	"gaussgo/internal/bootstrap"
 	"gaussgo/internal/state"
+	"gaussgo/internal/tui"
 )
 
 func main() {
-	fmt.Println("GaussGo")
-	fmt.Println("=======")
+	if !isQuietMode() {
+		fmt.Println("GaussGo")
+		fmt.Println("=======")
+	}
 
 	services := bootstrap.DefaultServices()
 	runtime, err := bootstrap.BootstrapRuntime("mods", "states", "main_menu", services)
@@ -38,10 +44,25 @@ func main() {
 		return
 	}
 
-	fmt.Printf("Discovered mods: %d\n", len(runtime.Diagnostics.DiscoveredMods))
-	fmt.Printf("Load order: %v\n", runtime.Diagnostics.LoadOrder)
-	fmt.Printf("Active state: %s\n", runtime.Context.ActiveStateID)
-	fmt.Printf("Locale: %s\n", runtime.Context.CurrentLocale)
-	fmt.Printf("Scene: %s\n", runtime.Controllers.Scene.Current())
-	fmt.Println("Phase 3 runtime orchestration is active. TUI scenes are next.")
+	model, modelErr := tui.NewAppModel(runtime, "states")
+	if modelErr != nil {
+		fmt.Println("startup failed building TUI model:", modelErr)
+		return
+	}
+
+	p := tea.NewProgram(model)
+	if _, runErr := p.Run(); runErr != nil {
+		fmt.Println("tui failed:", runErr)
+		return
+	}
+}
+
+func isQuietMode() bool {
+	level := strings.ToLower(strings.TrimSpace(os.Getenv("GAUSSGO_LOG_LEVEL")))
+	return envBool("GAUSSGO_QUIET") || envBool("GAUSSGO_SILENT") || level == "" || level == "silent" || level == "off" || level == "none"
+}
+
+func envBool(name string) bool {
+	v := strings.TrimSpace(strings.ToLower(os.Getenv(name)))
+	return v == "1" || v == "true" || v == "yes" || v == "on"
 }

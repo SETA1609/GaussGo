@@ -8,6 +8,11 @@ GaussGo is a local-first modular CLI/TUI learning framework for math topics (sta
 - Phase 1 hardening pass applied from bug report (structured app errors, concurrency safety, and wider test coverage).
 - Phase 2 state core is implemented (state model/store, normalization, active pointer, atomic persistence).
 - Phase 3 controllers/runtime orchestration is implemented (app/scene/learning/mod/locale controllers, runtime bootstrap wiring, and startup context loading).
+- Phase 4 TUI scene framework is implemented (interactive menu/navigation loop, state/language/mod scenes, learning hub shell, and controller-driven actions).
+- TUI UX stack now includes Bubble Tea v2, Bubbles components, Lip Gloss styling, Harmonica spring animation, BubbleZone mouse zones, and ntcharts sparklines.
+- Reusable terminal UI primitives are available under `internal/tui/components` (theme, menu renderer, screen layout, status pills) for shared GUI/TUI composition patterns.
+- Scene definitions are moving to data-driven JSON under mods (`mods/core/ui/scenes/*.json`) and are loaded by runtime scene schema loaders.
+- Localization now uses `codeberg.org/lil5/i18next_go` via `internal/i18n` resolver with contract fallback order.
 - Planning includes modular learning flows, per-mod/concept statistics, quiz modes, and step-by-step feedback.
 - Logging and event bus services are defined at the contract level.
 

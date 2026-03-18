@@ -30,5 +30,20 @@ GaussGo is a local-first modular CLI/TUI learning framework for math topics (sta
 - Test: `make test`
 - Full check: `make check`
 
+## Run Options
+- Local:
+  - `make run`
+  - or `go run ./cmd/gaussgo`
+- Container:
+  - Build: `docker build -t gaussgo .`
+  - Run interactive: `docker run -it --rm gaussgo`
+
+## Container Data and Mod Persistence
+- The image includes seeded `data/`, `mods/`, `states/`, and `pdfs/`.
+- For persistent state across runs, mount `states/` from host:
+  - `docker run -it --rm -v "$(pwd)/states:/root/states" gaussgo`
+- For local mod development with live host files, mount `mods/` too:
+  - `docker run -it --rm -v "$(pwd)/mods:/root/mods" -v "$(pwd)/states:/root/states" gaussgo`
+
 ## Planning and Docs Policy
 - After each phase implementation (or when explicitly requested), update `README.md` and relevant docs.

@@ -10,6 +10,8 @@ RUN apk --no-cache add ca-certificates
 WORKDIR /root/
 COPY --from=builder /gaussgo .
 COPY --from=builder /app/data ./data
+COPY --from=builder /app/mods ./mods
+COPY --from=builder /app/states ./states
 COPY --from=builder /app/pdfs ./pdfs
 
 CMD ["./gaussgo"]

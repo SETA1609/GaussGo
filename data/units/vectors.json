@@ -1,0 +1,32 @@
+{
+  "id": "vectors",
+  "title": "Vectors and Vector Spaces",
+  "description": "Introduction to vectors, operations, linear independence, basis and dimension.",
+  "concepts": [
+    {
+      "id": "vector-basics",
+      "title": "Vector Basics",
+      "explanation": "A vector is an object that has both magnitude and direction. In linear algebra, we represent them as ordered lists of numbers.",
+      "examples": [
+        {"input": "[1, 2, 3]", "meaning": "A 3D vector"}
+      ],
+      "exercise": {
+        "type": "multiple_choice",
+        "question": "What is the result of adding [1,2] and [3,4]?",
+        "options": ["[4,6]", "[2,3]", "[1,1]"],
+        "answer": "[4,6]"
+      }
+    },
+    {
+      "id": "dot-product",
+      "title": "Dot Product",
+      "explanation": "The dot product measures how much two vectors point in the same direction.",
+      "exercise": {
+        "type": "compute",
+        "input": {"a": [1, 2], "b": [3, 4]},
+        "expected": 11
+      }
+    }
+  ],
+  "progress": 0
+}

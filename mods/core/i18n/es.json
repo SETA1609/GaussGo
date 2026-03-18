@@ -1,0 +1,10 @@
+{
+  "mod.name": "Nucleo del Sistema",
+  "menu.start_learning": "Empezar a Aprender",
+  "menu.create_state": "Crear Nuevo Estado",
+  "menu.load_state": "Cargar Estado Existente",
+  "menu.mod_settings": "Configuracion de Mods",
+  "menu.mod_settings.refresh": "Recargar Mods",
+  "menu.exit": "Salir",
+  "state.core_required": "El mod core es obligatorio y siempre esta habilitado."
+}

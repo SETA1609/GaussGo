@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "stateId": "default",
+  "profileName": "Default Profile",
+  "createdAt": "2026-03-17T00:00:00Z",
+  "updatedAt": "2026-03-17T00:00:00Z",
+  "modsAtCreation": [
+    {
+      "id": "core",
+      "version": "0.1.0"
+    },
+    {
+      "id": "linearAlgebra",
+      "version": "0.1.0"
+    }
+  ],
+  "enabledMods": [
+    "core",
+    "linearAlgebra"
+  ],
+  "ui": {
+    "locale": "en"
+  },
+  "progress": {
+    "linearAlgebra": {
+      "completedUnits": [],
+      "conceptScores": {}
+    }
+  }
+}

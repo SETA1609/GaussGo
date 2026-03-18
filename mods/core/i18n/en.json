@@ -1,0 +1,10 @@
+{
+  "mod.name": "Core Runtime",
+  "menu.start_learning": "Start Learning",
+  "menu.create_state": "Create New State",
+  "menu.load_state": "Load Existing State",
+  "menu.mod_settings": "Mod Settings",
+  "menu.mod_settings.refresh": "Refresh Mods",
+  "menu.exit": "Exit",
+  "state.core_required": "Core mod is required and always enabled."
+}

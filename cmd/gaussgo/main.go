@@ -1,50 +1,47 @@
 package main
 
 import (
-	"encoding/json"
+	"errors"
 	"fmt"
-	"os"
+	"strings"
+
+	"gaussgo/internal/apperrors"
+	"gaussgo/internal/bootstrap"
+	"gaussgo/internal/state"
 )
 
-type Unit struct {
-	ID          string    `json:"id"`
-	Title       string    `json:"title"`
-	Description string    `json:"description"`
-	Concepts    []Concept `json:"concepts"`
-}
-
-type Concept struct {
-	ID          string   `json:"id"`
-	Title       string   `json:"title"`
-	Explanation string   `json:"explanation"`
-	Exercise    Exercise `json:"exercise"`
-}
-
-type Exercise struct {
-	Type     string `json:"type"`
-	Question string `json:"question,omitempty"`
-}
-
 func main() {
-	fmt.Println("🚀 GaussGo - Linear Algebra CLI Tutor")
-	fmt.Println("=====================================")
+	fmt.Println("GaussGo")
+	fmt.Println("=======")
 
-	data, err := os.ReadFile("data/units/vectors.json")
+	services := bootstrap.DefaultServices()
+	runtime, err := bootstrap.BootstrapRuntime("mods", "states", "main_menu", services)
 	if err != nil {
-		fmt.Println("Error loading data:", err)
+		var appErr apperrors.Error
+		if errors.As(err, &appErr) && appErr.Code == apperrors.CodeNotFound && strings.Contains(appErr.Message, "read active pointer") {
+			store := state.NewStore("states")
+			st, createErr := store.Create("default")
+			if createErr != nil {
+				fmt.Println("startup failed creating default state:", createErr)
+				return
+			}
+			if setErr := store.SetActive(st.StateID); setErr != nil {
+				fmt.Println("startup failed setting active state:", setErr)
+				return
+			}
+
+			runtime, err = bootstrap.BootstrapRuntime("mods", "states", "main_menu", services)
+		}
+	}
+	if err != nil {
+		fmt.Println("startup failed:", err)
 		return
 	}
 
-	var unit Unit
-	if err := json.Unmarshal(data, &unit); err != nil {
-		fmt.Println("Error parsing JSON:", err)
-		return
-	}
-
-	fmt.Printf("Loaded unit: %s\n", unit.Title)
-	fmt.Printf("Concepts: %d\n", len(unit.Concepts))
-	fmt.Println("\nData-driven learning ready. Next: implement Bubble Tea TUI.")
-
-	fmt.Println("\nRun with Docker for full Go 1.23+ support:")
-	fmt.Println("  docker build -t gaussgo . && docker run -it gaussgo")
+	fmt.Printf("Discovered mods: %d\n", len(runtime.Diagnostics.DiscoveredMods))
+	fmt.Printf("Load order: %v\n", runtime.Diagnostics.LoadOrder)
+	fmt.Printf("Active state: %s\n", runtime.Context.ActiveStateID)
+	fmt.Printf("Locale: %s\n", runtime.Context.CurrentLocale)
+	fmt.Printf("Scene: %s\n", runtime.Controllers.Scene.Current())
+	fmt.Println("Phase 3 runtime orchestration is active. TUI scenes are next.")
 }

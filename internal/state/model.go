@@ -16,6 +16,14 @@ var SupportedLocales = map[string]struct{}{
 	"es": {},
 }
 
+func SupportedLocalesSet() map[string]struct{} {
+	out := make(map[string]struct{}, len(SupportedLocales))
+	for locale := range SupportedLocales {
+		out[locale] = struct{}{}
+	}
+	return out
+}
+
 type fileState struct {
 	SchemaVersion  int                              `json:"schemaVersion"`
 	StateID        string                           `json:"stateId"`

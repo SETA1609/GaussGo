@@ -6,6 +6,10 @@ type SceneController interface {
 	Back() error
 }
 
+type AppController interface {
+	LoadActiveState() (State, error)
+}
+
 type LearningController interface {
 	SelectMod(modID string) error
 	SelectUnit(unitID string) error

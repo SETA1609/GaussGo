@@ -62,3 +62,21 @@ Must include:
 
 ## Exit Criteria
 - Non-interactive runtime can execute: load state, set locale, select mod, and emit context.
+
+## Implementation Status
+- Implemented in:
+  - `internal/controllers/app_controller.go`
+  - `internal/controllers/scene_controller.go`
+  - `internal/controllers/learning_controller.go`
+  - `internal/controllers/mod_controller.go`
+  - `internal/controllers/locale_controller.go`
+  - `internal/controllers/events.go`
+  - `internal/bootstrap/bootstrap.go` (runtime bootstrap wiring)
+  - `cmd/gaussgo/main.go` (startup orchestration entrypoint)
+- Tests added:
+  - `internal/controllers/app_controller_test.go`
+  - `internal/controllers/scene_controller_test.go`
+  - `internal/controllers/learning_controller_test.go`
+  - `internal/controllers/mod_controller_test.go`
+  - `internal/controllers/locale_controller_test.go`
+  - `internal/bootstrap/bootstrap_test.go` (runtime bootstrap scenarios)

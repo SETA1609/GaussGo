@@ -10,6 +10,8 @@ import (
 )
 
 func NormalizeAndValidate(in contracts.State) (contracts.State, []string, error) {
+	// Normalization is intentionally centralized here so create/load/save flows
+	// share exactly the same contract behavior.
 	state := in
 	warnings := make([]string, 0)
 
@@ -63,6 +65,7 @@ func NormalizeAndValidate(in contracts.State) (contracts.State, []string, error)
 }
 
 func ensureCoreEnabled(enabled []string) []string {
+	// Keep ordering stable while de-duplicating, then force core presence.
 	set := make(map[string]struct{}, len(enabled)+1)
 	out := make([]string, 0, len(enabled)+1)
 	for _, m := range enabled {
@@ -83,6 +86,8 @@ func ensureCoreEnabled(enabled []string) []string {
 }
 
 func normalizeUI(ui contracts.UIState, warnings *[]string) contracts.UIState {
+	// Locale fallback is a contract guarantee; unsupported values are tolerated
+	// and normalized to keep runtime resilient.
 	if ui.Preferences == nil {
 		ui.Preferences = map[string]string{}
 	}
@@ -105,6 +110,7 @@ func normalizeProgress(progress map[string]contracts.ModProgress) map[string]con
 }
 
 func dedupeStrings(in []string) []string {
+	// We keep first-seen ordering to avoid surprising UI reorderings.
 	seen := make(map[string]struct{}, len(in))
 	out := make([]string, 0, len(in))
 	for _, v := range in {

@@ -16,10 +16,14 @@ type Store struct {
 	statesDir string
 }
 
+// NewStore builds a state store bound to a states directory.
+//
+// The directory is created lazily on first write.
 func NewStore(statesDir string) *Store {
 	return &Store{statesDir: statesDir}
 }
 
+// Create initializes a new state with required defaults and persists it.
 func (s *Store) Create(profileName string) (contracts.State, error) {
 	profileName = strings.TrimSpace(profileName)
 	if profileName == "" {
@@ -54,6 +58,10 @@ func (s *Store) Create(profileName string) (contracts.State, error) {
 	return normalized, nil
 }
 
+// Load reads a state from disk and applies normalization rules.
+//
+// Load does not write back normalized values automatically; callers can Save
+// if they want normalization persisted immediately.
 func (s *Store) Load(stateID string) (contracts.State, error) {
 	path := s.stateFilePath(stateID)
 	data, err := os.ReadFile(path)
@@ -79,6 +87,9 @@ func (s *Store) Load(stateID string) (contracts.State, error) {
 	return normalized, nil
 }
 
+// Save validates, normalizes, and atomically persists a state file.
+//
+// Atomic write strategy: write temp file -> fsync -> rename.
 func (s *Store) Save(state contracts.State) error {
 	normalized, _, err := NormalizeAndValidate(state)
 	if err != nil {
@@ -122,10 +133,12 @@ func (s *Store) Save(state contracts.State) error {
 	return nil
 }
 
+// SetActive updates the active state pointer for the store directory.
 func (s *Store) SetActive(stateID string) error {
 	return SetActive(s.statesDir, stateID)
 }
 
+// GetActive reads the active state pointer for the store directory.
 func (s *Store) GetActive() (string, error) {
 	return GetActive(s.statesDir)
 }

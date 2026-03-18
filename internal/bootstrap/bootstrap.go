@@ -25,6 +25,8 @@ func DefaultServices() RuntimeServices {
 }
 
 func Bootstrap(modsDir string, services RuntimeServices) (Diagnostics, error) {
+	// Bootstrap accepts optional injected services so callers can provide
+	// production implementations while tests use defaults or stubs.
 	if services.Logger == nil {
 		services.Logger = NewStdLogger()
 	}

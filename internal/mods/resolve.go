@@ -23,6 +23,8 @@ func ResolveLoadOrder(manifests []contracts.ModManifest) ([]string, error) {
 		if _, ok := inDegree[m.ID]; !ok {
 			inDegree[m.ID] = 0
 		}
+		// Deduplicate dependency IDs defensively for stable graph math, even
+		// though validation should reject duplicates.
 		seenDeps := make(map[string]struct{}, len(m.Dependencies))
 		for _, dep := range m.Dependencies {
 			if _, duplicate := seenDeps[dep.ID]; duplicate {
@@ -75,6 +77,7 @@ func ResolveLoadOrder(manifests []contracts.ModManifest) ([]string, error) {
 	}
 
 	if len(order) != len(manifests) {
+		// If any node is unresolved, the graph contains at least one cycle.
 		return nil, apperrors.New(apperrors.CodeDependency, apperrors.ErrorTypeDomain, "dependency cycle detected")
 	}
 	if order[0] != "core" {

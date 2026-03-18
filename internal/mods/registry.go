@@ -70,6 +70,7 @@ func (r *Repository) Refresh() ([]contracts.ModStatus, error) {
 		return nil, err
 	}
 
+	// Cache the latest computed statuses for read-mostly consumers.
 	r.mu.Lock()
 	r.statuses = append([]contracts.ModStatus(nil), statuses...)
 	r.mu.Unlock()

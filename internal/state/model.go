@@ -35,6 +35,8 @@ type fileUIState struct {
 }
 
 func toFileState(in contracts.State) fileState {
+	// Persist timestamps with nanosecond precision to avoid accidental
+	// equality across fast consecutive saves.
 	return fileState{
 		SchemaVersion:  in.SchemaVersion,
 		StateID:        in.StateID,
@@ -80,6 +82,7 @@ func fromFileState(in fileState) (contracts.State, error) {
 }
 
 func parseStateTime(in string) (time.Time, error) {
+	// Backward-compatible parsing: prefer RFC3339Nano but accept RFC3339.
 	if t, err := time.Parse(time.RFC3339Nano, in); err == nil {
 		return t, nil
 	}

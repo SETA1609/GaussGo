@@ -11,6 +11,7 @@
 - Keep exported APIs minimal and stable.
 - Return errors with enough context to debug quickly.
 - Prefer simple data structures and explicit control flow.
+- Add comments for maintainers, especially on non-obvious logic, contracts, and design decisions.
 
 ## Architecture
 - Keep TUI scenes thin; controllers own runtime decisions.

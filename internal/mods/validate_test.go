@@ -53,3 +53,14 @@ func TestValidateManifestRejectsCoreDependencies(t *testing.T) {
 		t.Fatal("expected core dependency error")
 	}
 }
+
+func TestValidateManifestRejectsDuplicateDependencyID(t *testing.T) {
+	m := validManifest()
+	m.Dependencies = []contracts.ModDependency{
+		{ID: "core", Version: ">=0.1.0"},
+		{ID: "core", Version: ">=0.1.0"},
+	}
+	if err := ValidateManifest(m); err == nil {
+		t.Fatal("expected duplicate dependency id error")
+	}
+}

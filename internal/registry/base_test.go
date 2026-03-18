@@ -1,6 +1,10 @@
 package registry
 
-import "testing"
+import (
+	"fmt"
+	"sync"
+	"testing"
+)
 
 func TestBaseCRUD(t *testing.T) {
 	r := NewBase[string, int]()
@@ -37,4 +41,22 @@ func TestBaseCRUD(t *testing.T) {
 	if _, err := r.Get("a"); err != ErrNotFound {
 		t.Fatalf("expected not found after delete, got %v", err)
 	}
+}
+
+func TestBaseConcurrentAccess(t *testing.T) {
+	r := NewBase[string, int]()
+
+	const workers = 40
+	var wg sync.WaitGroup
+	for i := 0; i < workers; i++ {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			key := fmt.Sprintf("k-%d", i)
+			_ = r.Register(key, i)
+			_, _ = r.Get(key)
+			_ = r.Delete(key)
+		}(i)
+	}
+	wg.Wait()
 }

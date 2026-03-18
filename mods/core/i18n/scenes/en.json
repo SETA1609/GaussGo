@@ -1,0 +1,81 @@
+{
+  "scene": {
+    "main_menu": {
+      "title": "Main Menu",
+      "subtitle": "Choose an action",
+      "active_state": "Active state: ",
+      "locale": "Locale: "
+    },
+    "state_create": {
+      "title": "Create State",
+      "subtitle": "Quick profile setup",
+      "help": "Create a default profile state.",
+      "create_default": "Create 'student'"
+    },
+    "state_load": {
+      "title": "Load State",
+      "subtitle": "Switch active profile",
+      "help": "Select a state to load.",
+      "none": "No states found."
+    },
+    "language": {
+      "title": "Select Language",
+      "subtitle": "Language applies to current state",
+      "current": "Current: "
+    },
+    "mod_settings": {
+      "title": "Mod Settings",
+      "subtitle": "Toggle non-core modules",
+      "help": "Manage enabled mods."
+    },
+    "mod_select": {
+      "title": "Select Mod",
+      "subtitle": "Choose module to study",
+      "help": "Enabled modules only."
+    },
+    "unit_select": {
+      "title": "Select Unit",
+      "subtitle": "Select a unit from current mod",
+      "current_mod": "Current mod: "
+    },
+    "concepts": {
+      "title_main": "Concept Slides",
+      "subtitle": "Use next/back to move through concepts",
+      "path": "Path: ",
+      "position": "Slide ",
+      "title": "Concept: ",
+      "prev": "Previous",
+      "next": "Next"
+    },
+    "learning_hub": {
+      "title": "Learning Hub",
+      "subtitle": "Choose activity",
+      "mod": "Mod: ",
+      "statistics": "Statistics",
+      "lessons": "Lessons",
+      "random_quiz": "Random Quiz",
+      "helpers": "Helpers",
+      "back_main": "Back to Main Menu"
+    },
+    "statistics": {
+      "title": "Statistics",
+      "subtitle": "Expand modules for concept details",
+      "help": "Per-mod progress overview",
+      "toggle": "Toggle ",
+      "none": "No stats yet."
+    },
+    "random_quiz": {
+      "title": "Random Quiz Setup",
+      "mode": "Mode: ",
+      "help": "Choose quiz mode.",
+      "eligible": "Eligible concepts are read concepts only.",
+      "random": "Random",
+      "selected": "Selected Concepts"
+    },
+    "helpers": {
+      "title": "Helpers",
+      "subtitle": "Helper operations from enabled mods",
+      "help": "Phase 5 will populate helper actions."
+    }
+  }
+}

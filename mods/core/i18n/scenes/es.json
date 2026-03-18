@@ -1,0 +1,81 @@
+{
+  "scene": {
+    "main_menu": {
+      "title": "Menu Principal",
+      "subtitle": "Elige una accion",
+      "active_state": "Estado activo: ",
+      "locale": "Idioma: "
+    },
+    "state_create": {
+      "title": "Crear Estado",
+      "subtitle": "Configuracion rapida de perfil",
+      "help": "Crea un estado de perfil predeterminado.",
+      "create_default": "Crear 'student'"
+    },
+    "state_load": {
+      "title": "Cargar Estado",
+      "subtitle": "Cambiar perfil activo",
+      "help": "Selecciona un estado para cargar.",
+      "none": "No se encontraron estados."
+    },
+    "language": {
+      "title": "Seleccionar Idioma",
+      "subtitle": "El idioma se aplica al estado actual",
+      "current": "Actual: "
+    },
+    "mod_settings": {
+      "title": "Configuracion de Mods",
+      "subtitle": "Alternar modulos no-core",
+      "help": "Administra los mods habilitados."
+    },
+    "mod_select": {
+      "title": "Seleccionar Mod",
+      "subtitle": "Elige modulo para estudiar",
+      "help": "Solo modulos habilitados."
+    },
+    "unit_select": {
+      "title": "Seleccionar Unidad",
+      "subtitle": "Selecciona una unidad del mod actual",
+      "current_mod": "Mod actual: "
+    },
+    "concepts": {
+      "title_main": "Diapositivas de Conceptos",
+      "subtitle": "Usa siguiente/anterior para moverte entre conceptos",
+      "path": "Ruta: ",
+      "position": "Diapositiva ",
+      "title": "Concepto: ",
+      "prev": "Anterior",
+      "next": "Siguiente"
+    },
+    "learning_hub": {
+      "title": "Centro de Aprendizaje",
+      "subtitle": "Elige actividad",
+      "mod": "Mod: ",
+      "statistics": "Estadisticas",
+      "lessons": "Lecciones",
+      "random_quiz": "Quiz Aleatorio",
+      "helpers": "Ayudantes",
+      "back_main": "Volver al Menu Principal"
+    },
+    "statistics": {
+      "title": "Estadisticas",
+      "subtitle": "Expande modulos para detalles de conceptos",
+      "help": "Resumen de progreso por mod",
+      "toggle": "Alternar ",
+      "none": "Sin estadisticas aun."
+    },
+    "random_quiz": {
+      "title": "Configuracion Quiz Aleatorio",
+      "mode": "Modo: ",
+      "help": "Elige modo de quiz.",
+      "eligible": "Conceptos elegibles son solo conceptos leidos.",
+      "random": "Aleatorio",
+      "selected": "Conceptos Seleccionados"
+    },
+    "helpers": {
+      "title": "Ayudantes",
+      "subtitle": "Operaciones auxiliares de mods habilitados",
+      "help": "Fase 5 llenara acciones de ayuda."
+    }
+  }
+}

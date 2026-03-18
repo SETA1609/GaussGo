@@ -12,3 +12,4 @@ This file is the entry point for contributor and coding-agent guidance.
 - Start with this index.
 - Open the relevant guide for the task type.
 - If rules conflict, follow repository-level contracts and phase docs.
+- After each phase implementation (or when explicitly requested), update `README.md` and relevant docs.

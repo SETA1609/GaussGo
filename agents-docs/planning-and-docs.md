@@ -9,12 +9,15 @@
 - Update planning docs when behavior/contracts change.
 - Keep examples aligned with actual schema and interfaces.
 - Prefer additive changes; version breaking contract changes.
+- After each phase implementation, update `README.md` and relevant docs in the same work cycle.
+- If explicitly commanded, perform a docs refresh pass even when no code changes are made.
 
 ## Cross-References
 - When adding new services or flows, update:
   - Phase 0 deliverables/inputs
   - Relevant phase scopes/deliverables/tests
   - `docs/integration-map.md`
+  - `README.md` summary/status section
 
 ## Writing Style
 - Be concise and specific.

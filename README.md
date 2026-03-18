@@ -5,6 +5,7 @@ GaussGo is a local-first modular CLI/TUI learning framework for math topics (sta
 ## Current Status
 - Phase 0 (parallel-readiness contracts) is in place.
 - Phase 1 foundation is implemented (registry, mod discovery/validation/resolution, bootstrap service wiring).
+- Phase 1 hardening pass applied from bug report (structured app errors, concurrency safety, and wider test coverage).
 - Planning includes modular learning flows, per-mod/concept statistics, quiz modes, and step-by-step feedback.
 - Logging and event bus services are defined at the contract level.
 

@@ -48,9 +48,8 @@ These stubs are minimal compile-time interfaces used by all phases.
 ### 3) Shared Types and Errors
 - `internal/types/runtime_context.go` (must include `CurrentLocale`)
 - `internal/types/ids.go` (namespaced ID helpers)
-- `internal/errors/codes.go` (shared error codes)
-- `internal/errors/error_types.go`
-- `internal/types/events.go` (event envelope and metadata)
+- `internal/apperrors/codes.go` (shared error codes)
+- `internal/apperrors/error_types.go`
 
 ### 4) Tooling Baseline
 - `Makefile` targets:

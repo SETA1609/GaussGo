@@ -9,7 +9,7 @@
 - Phase 5 produces learning/content execution consumed by Phase 6 hardening.
 
 ## Handoff Artifacts
-- Phase 0 -> all: `docs/contracts/*`, `internal/contracts/*`, shared `internal/types/*`, shared `internal/errors/*`, baseline logging/event contracts.
+- Phase 0 -> all: `docs/contracts/*`, `internal/contracts/*`, shared `internal/types/*`, shared `internal/apperrors/*`, baseline logging/event contracts.
 - Phase 1 -> 3/4/6: mod registry API, refresh behavior, bootstrap diagnostics.
 - Phase 2 -> 3/4/5/6: state persistence API, normalization behavior.
 - Phase 3 -> 4: stable controller interfaces and runtime context integration.

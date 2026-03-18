@@ -18,6 +18,6 @@
 - Keep runtime context and state schema aligned with docs/contracts.
 
 ## Error Handling
-- Use shared error codes and error types from `internal/errors`.
+- Use shared error codes and error types from `internal/apperrors`.
 - Do not swallow errors silently unless contract says to degrade gracefully.
 - Preserve root cause when wrapping errors.

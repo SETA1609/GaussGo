@@ -74,3 +74,13 @@ Establish framework primitives: base registry, mod discovery, manifest validatio
   - `internal/mods/discover_test.go`
   - `internal/mods/validate_test.go`
   - `internal/mods/resolve_test.go`
+  - `internal/mods/status_test.go`
+  - `internal/mods/registry_test.go`
+  - `internal/bootstrap/services_test.go`
+  - `internal/bootstrap/bootstrap_test.go`
+
+### Bug-Report Follow-up
+- Duplicate dependency IDs are now rejected in manifest validation.
+- Repository refresh status cache is guarded with mutex for concurrency safety.
+- Event type duplication removed in favor of `contracts.Event`.
+- Structured errors moved to `internal/apperrors` and integrated in mods/bootstrap/event bus paths.

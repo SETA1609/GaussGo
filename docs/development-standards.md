@@ -1,7 +1,7 @@
 # Development Standards
 
 ## Go Version
-- Source of truth: `go.mod` (`go 1.24.2`, toolchain `go1.24.13`).
+- Source of truth: `go.mod` (`go 1.26`, toolchain `go1.26.1`).
 
 ## Formatting and Linting
 - Use `go fmt ./...` for formatting.

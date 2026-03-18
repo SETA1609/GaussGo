@@ -2,9 +2,11 @@ package bootstrap
 
 import (
 	"fmt"
+	"os"
 	"sync"
 	"time"
 
+	"gaussgo/internal/apperrors"
 	"gaussgo/internal/contracts"
 )
 
@@ -14,10 +16,14 @@ func NewStdLogger() contracts.LoggingService {
 	return StdLogger{}
 }
 
-func (StdLogger) Debug(msg string, fields map[string]any) { _ = msg; _ = fields }
-func (StdLogger) Info(msg string, fields map[string]any)  { _ = msg; _ = fields }
-func (StdLogger) Warn(msg string, fields map[string]any)  { _ = msg; _ = fields }
-func (StdLogger) Error(msg string, fields map[string]any) { _ = msg; _ = fields }
+func (StdLogger) Debug(msg string, fields map[string]any) { logLine("debug", msg, fields) }
+func (StdLogger) Info(msg string, fields map[string]any)  { logLine("info", msg, fields) }
+func (StdLogger) Warn(msg string, fields map[string]any)  { logLine("warn", msg, fields) }
+func (StdLogger) Error(msg string, fields map[string]any) { logLine("error", msg, fields) }
+
+func logLine(level string, msg string, fields map[string]any) {
+	_, _ = fmt.Fprintf(os.Stderr, "level=%s msg=%q fields=%v\n", level, msg, fields)
+}
 
 type InMemoryEventBus struct {
 	mu            sync.RWMutex
@@ -35,7 +41,7 @@ func NewInMemoryEventBus() contracts.EventBusService {
 
 func (b *InMemoryEventBus) Emit(event contracts.Event) error {
 	if event.Name == "" {
-		return fmt.Errorf("event name is required")
+		return apperrors.New(apperrors.CodeValidation, apperrors.ErrorTypeInput, "event name is required")
 	}
 	if event.Timestamp.IsZero() {
 		event.Timestamp = time.Now().UTC()
@@ -61,10 +67,10 @@ func (b *InMemoryEventBus) Emit(event contracts.Event) error {
 
 func (b *InMemoryEventBus) Subscribe(eventName string, handler contracts.EventHandler) (string, error) {
 	if eventName == "" {
-		return "", fmt.Errorf("event name is required")
+		return "", apperrors.New(apperrors.CodeValidation, apperrors.ErrorTypeInput, "event name is required")
 	}
 	if handler == nil {
-		return "", fmt.Errorf("event handler is required")
+		return "", apperrors.New(apperrors.CodeValidation, apperrors.ErrorTypeInput, "event handler is required")
 	}
 
 	b.mu.Lock()

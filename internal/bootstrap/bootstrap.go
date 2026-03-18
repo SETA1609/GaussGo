@@ -1,8 +1,7 @@
 package bootstrap
 
 import (
-	"fmt"
-
+	"gaussgo/internal/apperrors"
 	"gaussgo/internal/contracts"
 	"gaussgo/internal/mods"
 )
@@ -25,15 +24,26 @@ func DefaultServices() RuntimeServices {
 	}
 }
 
-func Bootstrap(modsDir string) (Diagnostics, error) {
+func Bootstrap(modsDir string, services RuntimeServices) (Diagnostics, error) {
+	if services.Logger == nil {
+		services.Logger = NewStdLogger()
+	}
+	if services.EventBus == nil {
+		services.EventBus = NewInMemoryEventBus()
+	}
+
+	services.Logger.Info("bootstrap started", map[string]any{"modsDir": modsDir})
+
 	manifests, err := mods.Discover(modsDir)
 	if err != nil {
-		return Diagnostics{}, fmt.Errorf("discover mods: %w", err)
+		services.Logger.Error("bootstrap failed discovering mods", map[string]any{"error": err.Error()})
+		return Diagnostics{}, apperrors.Wrap(apperrors.CodeValidation, apperrors.ErrorTypeDomain, "discover mods", err)
 	}
 
 	loadOrder, err := mods.ResolveLoadOrder(manifests)
 	if err != nil {
-		return Diagnostics{}, fmt.Errorf("resolve load order: %w", err)
+		services.Logger.Error("bootstrap failed resolving load order", map[string]any{"error": err.Error()})
+		return Diagnostics{}, apperrors.Wrap(apperrors.CodeDependency, apperrors.ErrorTypeDomain, "resolve load order", err)
 	}
 
 	discovered := make([]string, 0, len(manifests))
@@ -41,9 +51,13 @@ func Bootstrap(modsDir string) (Diagnostics, error) {
 		discovered = append(discovered, m.ID)
 	}
 
-	return Diagnostics{
+	diagnostics := Diagnostics{
 		DiscoveredMods: discovered,
 		LoadOrder:      loadOrder,
 		Warnings:       nil,
-	}, nil
+	}
+
+	services.Logger.Info("bootstrap completed", map[string]any{"mods": len(discovered)})
+
+	return diagnostics, nil
 }

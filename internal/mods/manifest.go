@@ -2,9 +2,9 @@ package mods
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 
+	"gaussgo/internal/apperrors"
 	"gaussgo/internal/contracts"
 )
 
@@ -21,12 +21,12 @@ type manifestJSON struct {
 func ParseManifestFile(path string) (contracts.ModManifest, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return contracts.ModManifest{}, fmt.Errorf("read manifest: %w", err)
+		return contracts.ModManifest{}, apperrors.Wrap(apperrors.CodeNotFound, apperrors.ErrorTypeInput, "read manifest", err)
 	}
 
 	var raw manifestJSON
 	if err := json.Unmarshal(data, &raw); err != nil {
-		return contracts.ModManifest{}, fmt.Errorf("parse manifest: %w", err)
+		return contracts.ModManifest{}, apperrors.Wrap(apperrors.CodeValidation, apperrors.ErrorTypeInput, "parse manifest", err)
 	}
 
 	manifest := contracts.ModManifest{

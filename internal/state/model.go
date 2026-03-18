@@ -43,7 +43,7 @@ func toFileState(in contracts.State) fileState {
 		ProfileName:    in.ProfileName,
 		CreatedAt:      in.CreatedAt.UTC().Format(time.RFC3339Nano),
 		UpdatedAt:      in.UpdatedAt.UTC().Format(time.RFC3339Nano),
-		ModsAtCreation: in.ModsAtCreation,
+		ModsAtCreation: append([]contracts.ModVersionRef(nil), in.ModsAtCreation...),
 		EnabledMods:    append([]string(nil), in.EnabledMods...),
 		UI: fileUIState{
 			Locale:      in.UI.Locale,

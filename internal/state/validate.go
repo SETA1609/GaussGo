@@ -9,7 +9,16 @@ import (
 	"gaussgo/internal/contracts"
 )
 
+var defaultSupportedLocales = map[string]struct{}{
+	"en": {},
+	"es": {},
+}
+
 func NormalizeAndValidate(in contracts.State) (contracts.State, []string, error) {
+	return NormalizeAndValidateWithLocales(in, defaultSupportedLocales)
+}
+
+func NormalizeAndValidateWithLocales(in contracts.State, supportedLocales map[string]struct{}) (contracts.State, []string, error) {
 	// Normalization is intentionally centralized here so create/load/save flows
 	// share exactly the same contract behavior.
 	state := in
@@ -40,7 +49,7 @@ func NormalizeAndValidate(in contracts.State) (contracts.State, []string, error)
 	}
 
 	state.EnabledMods = ensureCoreEnabled(state.EnabledMods)
-	state.UI = normalizeUI(state.UI, &warnings)
+	state.UI = normalizeUI(state.UI, supportedLocales, &warnings)
 	state.Progress = normalizeProgress(state.Progress)
 
 	for modID, p := range state.Progress {
@@ -85,7 +94,7 @@ func ensureCoreEnabled(enabled []string) []string {
 	return out
 }
 
-func normalizeUI(ui contracts.UIState, warnings *[]string) contracts.UIState {
+func normalizeUI(ui contracts.UIState, supportedLocales map[string]struct{}, warnings *[]string) contracts.UIState {
 	// Locale fallback is a contract guarantee; unsupported values are tolerated
 	// and normalized to keep runtime resilient.
 	if ui.Preferences == nil {
@@ -95,7 +104,7 @@ func normalizeUI(ui contracts.UIState, warnings *[]string) contracts.UIState {
 		ui.Locale = DefaultLocale
 		*warnings = append(*warnings, "ui.locale missing, defaulted to en")
 	}
-	if _, ok := SupportedLocales[ui.Locale]; !ok {
+	if _, ok := supportedLocales[ui.Locale]; !ok {
 		ui.Locale = DefaultLocale
 		*warnings = append(*warnings, "ui.locale unsupported, fallback to en")
 	}

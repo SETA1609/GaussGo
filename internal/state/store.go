@@ -2,6 +2,7 @@ package state
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -11,6 +12,8 @@ import (
 	"gaussgo/internal/apperrors"
 	"gaussgo/internal/contracts"
 )
+
+var _ contracts.StateStore = (*Store)(nil)
 
 type Store struct {
 	statesDir string
@@ -32,6 +35,12 @@ func (s *Store) Create(profileName string) (contracts.State, error) {
 
 	now := time.Now().UTC()
 	stateID := slugify(profileName)
+	if _, err := os.Stat(s.stateFilePath(stateID)); err == nil {
+		return contracts.State{}, apperrors.New(apperrors.CodeConflict, apperrors.ErrorTypeInput, "state already exists for stateId "+stateID)
+	} else if !errors.Is(err, os.ErrNotExist) {
+		return contracts.State{}, apperrors.Wrap(apperrors.CodeUnknown, apperrors.ErrorTypeInfrastructure, "check existing state file", err)
+	}
+
 	state := contracts.State{
 		SchemaVersion: SchemaVersion,
 		StateID:       stateID,
@@ -66,7 +75,10 @@ func (s *Store) Load(stateID string) (contracts.State, error) {
 	path := s.stateFilePath(stateID)
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return contracts.State{}, apperrors.Wrap(apperrors.CodeNotFound, apperrors.ErrorTypeInput, "read state file", err)
+		if errors.Is(err, os.ErrNotExist) {
+			return contracts.State{}, apperrors.Wrap(apperrors.CodeNotFound, apperrors.ErrorTypeInput, "read state file", err)
+		}
+		return contracts.State{}, apperrors.Wrap(apperrors.CodeUnknown, apperrors.ErrorTypeInfrastructure, "read state file", err)
 	}
 
 	var file fileState
@@ -113,6 +125,9 @@ func (s *Store) Save(state contracts.State) error {
 	if err != nil {
 		return apperrors.Wrap(apperrors.CodeUnknown, apperrors.ErrorTypeInfrastructure, "open temp state file", err)
 	}
+	defer func() {
+		_ = os.Remove(tmpPath)
+	}()
 
 	if _, err := f.Write(payload); err != nil {
 		_ = f.Close()

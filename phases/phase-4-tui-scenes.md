@@ -18,9 +18,16 @@ Build Bubble Tea scenes on top of controllers, with thin view logic and strong U
 - Language selection scene.
 - Mod and unit selection scenes.
 - Learning Hub scene after Start Learning.
+- Thin adapter boundary for Bubble Tea/Charm so scenes depend on internal ports.
 
 ## Deliverables
 - `internal/tui/app_model.go`
+- `internal/tui/ports/program.go`
+- `internal/tui/ports/input.go`
+- `internal/tui/ports/render.go`
+- `internal/tui/adapters/bubbletea_program.go`
+- `internal/tui/adapters/charm_input.go`
+- `internal/tui/adapters/charm_render.go`
 - `internal/tui/scenes/main_menu.go`
 - `internal/tui/scenes/state_create.go`
 - `internal/tui/scenes/state_load.go`
@@ -76,6 +83,7 @@ Build Bubble Tea scenes on top of controllers, with thin view logic and strong U
 - Random quiz setup tests cover both `Random` and `Selected Concepts` branches.
 - Quiz input tests cover both answer-letter input and direct choice selection.
 - Random quiz result scene tests for step-by-step and wrong-answer clarification blocks.
+- Adapter conformance tests for program/input/render ports.
 
 ## Exit Criteria
 - User can navigate full menu tree, refresh mods, and change language from UI.

@@ -20,17 +20,11 @@ The runtime/framework is the Go program itself. Mods integrate with the framewor
 - Each mod declares localization in `manifest.json`.
 - Cross-cutting runtime services include `LoggingService` and `EventBusService`.
 
-## Gap Tracker (Included in Plan)
-The following gaps are explicitly included and must be implemented:
-1. Add `LocaleController` for runtime locale switching and persistence.
-2. Add `internal/i18n` package to the implementation map.
-3. Extend runtime context with `CurrentLocale`.
-4. Clarify `Refresh Mods` behavior (rescan + status refresh + no auto-enable unless user confirms).
-5. Add and document `internal/bootstrap` package responsibilities.
-6. Provide explicit `ui` state object example (`locale`, `lastScene`, preferences).
-7. Keep heading levels and structure consistent across phase docs.
-8. Add contracts and wiring plan for `LoggingService`.
-9. Add contracts and wiring plan for `EventBusService` (emit + subscribe).
+## Current Baseline
+- Contracts and compile-time interfaces are in place.
+- Phases 0-6 are implemented at framework level.
+- Startup and controllers are wired with state, mods, i18n, logging, and event bus.
+- TUI navigation and learning-hub shells are available.
 
 ## Mod and State Rules (Canonical)
 - `core` manifest must exist or startup fails.
@@ -55,6 +49,16 @@ The following gaps are explicitly included and must be implemented:
 - Runtime emits domain events for major actions (state load/save, locale change, mod refresh/toggle, quiz start/finish).
 - Runtime logs structured events through `LoggingService` with level and context fields.
 
+## Open Planning Items
+1. Introduce a runtime mod type (`ModRuntime`) that carries both manifest metadata and executable behavior.
+2. Add a runtime mod registry for initialized mod instances, separate from manifest/status discovery.
+3. Define lifecycle hooks for mod instances (`Init`, optional `Shutdown`) and enforce deterministic initialization by resolved load order.
+4. Add capability exposure rules so controllers/scenes can access mod features safely (for example helpers) via typed interfaces instead of loose maps.
+5. Wire bootstrap to build, initialize, and register runtime mod instances after manifest resolution.
+6. Add docs/contracts for runtime mod capabilities and bootstrap lifecycle (`docs/contracts/mod-runtime-v1.md`) where shared runtime types are owned by `core`, then align phase docs and README.
+7. Add tests for runtime mod registration, duplicate capability conflicts, initialization failures, and capability lookup behavior.
+8. Introduce thin TUI adapter ports around Bubble Tea/Charm boundaries so scene logic depends on internal interfaces, not vendor types.
+
 ## Phase Documents
 - Phase 0: `phases/phase-0-parallel-readiness.md`
 - Phase 1: `phases/phase-1-foundation.md`
@@ -64,27 +68,22 @@ The following gaps are explicitly included and must be implemented:
 - Phase 5: `phases/phase-5-learning-mvp.md`
 - Phase 6: `phases/phase-6-hardening.md`
 
-## Suggested Execution Order
-1. Complete Phase 0 first to define all shared contracts and tooling.
-2. After Phase 0, run Phases 1-5 in parallel where possible.
-3. Start Phase 6 after at least one vertical slice from Phases 1-5 is working.
-4. Final integration pass resolves cross-phase merge points.
+## Suggested Next Execution Order
+1. Define `ModRuntime` and capability contracts in `internal/contracts/mods.go` and contract docs.
+2. Implement runtime mod registry under `internal/mods` and bootstrap lifecycle wiring.
+3. Add TUI port interfaces (program runner, input mapping, renderer primitives) and implement Bubble Tea/Charm adapters in `internal/tui/adapters`.
+4. Migrate helper access paths to runtime capabilities and keep manifest `provides` as declarative metadata.
+5. Expand tests and update integration docs (`docs/integration-map.md`) and README.
 
 ## Acceptance Summary
-- New valid mod folder appears after refresh without code changes.
-- `core` always present and always enabled.
-- User can create/load states and switch language.
-- Language persists per state.
-- User can view per-mod statistics (correctness % + exercises done).
-- User can expand a mod in Statistics and view concept-level stats in table form.
-- User can read lessons from mod concepts (for example vectors/matrices from `linearAlgebra`).
-- User can run random quizzes from already-read concepts only.
-- User can run quiz in `Random` mode or `Selected Concepts` mode (both generate random problems from their pool).
-- User can answer by selecting a choice or typing the answer letter.
-- User can review step-by-step quiz solutions with clarifications for incorrect answers.
-- User can call helper functions provided by mods.
-- User can learn from at least one unit and save progress/state.
-- Runtime supports centralized structured logging and event emission/subscription for orchestration.
+- Runtime supports initialized mod instances registered by mod ID.
+- Runtime exposes mod capabilities/functions through a typed access layer.
+- Bootstrap guarantees deterministic mod initialization order and clear startup diagnostics on failures.
+- Helper/feature calls resolve through runtime capabilities of enabled mods.
+- Contract docs and tests cover runtime mod lifecycle and capability lookup.
 
 ## Immediate Next Task
-Start with `phases/phase-0-parallel-readiness.md` to unlock parallel execution of the remaining phases.
+Create a small design slice for runtime mod instances:
+- Add `ModRuntime` + capability contracts.
+- Implement runtime mod registry.
+- Wire bootstrap initialization and add focused tests.

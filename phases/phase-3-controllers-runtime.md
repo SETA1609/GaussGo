@@ -21,6 +21,7 @@ Introduce runtime controllers and context management separate from TUI rendering
 - Mod enable/disable logic.
 - Locale selection controller.
 - Controller-level logging and event emission.
+- Runtime mod instance lifecycle orchestration (build/init/register).
 
 ## Deliverables
 - `internal/controllers/app_controller.go`
@@ -29,6 +30,8 @@ Introduce runtime controllers and context management separate from TUI rendering
 - `internal/controllers/mod_controller.go`
 - `internal/controllers/locale_controller.go`
 - `internal/controllers/events.go`
+- `internal/mods/runtime_registry.go`
+- `internal/mods/runtime_factory.go` (or equivalent constructor wiring)
 - Runtime context model with locale.
 
 ## Runtime Context
@@ -59,6 +62,8 @@ Must include:
 - Core toggle rejection tests.
 - Locale change updates context and state.
 - Bootstrap ordering and failure tests.
+- Runtime mod initialization order and failure-path tests.
+- Runtime capability lookup tests from controller call sites.
 
 ## Exit Criteria
 - Non-interactive runtime can execute: load state, set locale, select mod, and emit context.

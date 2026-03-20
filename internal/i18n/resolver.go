@@ -25,6 +25,9 @@ type Resolver struct {
 	orderByMod    map[string][]string
 }
 
+// NewResolver discovers all mods in the given directory and loads their
+// localization resources. It supports both flat locale files and nested
+// namespace directories within each mod's localization path.
 func NewResolver(modsDir string, defaultLocale string) (*Resolver, error) {
 	if strings.TrimSpace(defaultLocale) == "" {
 		defaultLocale = "en"
@@ -124,10 +127,18 @@ func NewResolver(modsDir string, defaultLocale string) (*Resolver, error) {
 	}, nil
 }
 
+// Resolve provides a simple interface for translating a key within a mod's scope.
 func (r *Resolver) Resolve(modID string, locale string, key string) string {
 	return r.ResolveWithOptions(modID, locale, key, nil)
 }
 
+// ResolveWithOptions performs a full localization lookup with fallback logic.
+// The search order is:
+// 1. Target locale in the specific mod's namespaces.
+// 2. Target locale in the "core" mod's namespaces.
+// 3. Mod's default locale in the mod's namespaces.
+// 4. "core" mod's default locale in the "core" namespaces.
+// It also handles interpolation and pluralization based on the provided options.
 func (r *Resolver) ResolveWithOptions(modID string, locale string, key string, options map[string]any) string {
 	if r == nil || r.engine == nil || strings.TrimSpace(key) == "" {
 		return key
@@ -181,6 +192,8 @@ func (r *Resolver) ResolveWithOptions(modID string, locale string, key string, o
 	return key
 }
 
+// SupportedLocales returns a sorted list of all locale codes discovered
+// across all loaded mod manifests. Returns a copy of the internal slice.
 func (r *Resolver) SupportedLocales() []string {
 	if r == nil {
 		return nil

@@ -23,6 +23,9 @@ func NewAppController(stateStore contracts.StateStore, ctx *types.RuntimeContext
 	return &AppController{stateStore: stateStore, ctx: ctx, logger: logger, eventBus: eventBus}
 }
 
+// LoadActiveState loads the currently active learner profile from the store.
+// If c.ctx.ActiveStateID is empty, it queries the store for the active record.
+// All major state transitions through this method emit a "state.loaded" event.
 func (c *AppController) LoadActiveState() (contracts.State, error) {
 	activeID := strings.TrimSpace(c.ctx.ActiveStateID)
 	if activeID == "" {
@@ -57,6 +60,8 @@ func (c *AppController) LoadActiveState() (contracts.State, error) {
 	return st, nil
 }
 
+// CreateAndActivateState creates a new state profile, sets it as the active pointer
+// in the store, and reloads the runtime context. Emits "state.created".
 func (c *AppController) CreateAndActivateState(profileName string) (contracts.State, error) {
 	st, err := c.stateStore.Create(profileName)
 	if err != nil {
@@ -76,6 +81,8 @@ func (c *AppController) CreateAndActivateState(profileName string) (contracts.St
 	return c.LoadActiveState()
 }
 
+// ActivateState sets an existing state as active in the store and reloads the
+// runtime context to match.
 func (c *AppController) ActivateState(stateID string) error {
 	if err := c.stateStore.SetActive(stateID); err != nil {
 		return err

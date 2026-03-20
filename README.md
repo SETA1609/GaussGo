@@ -9,6 +9,8 @@ GaussGo is a local-first modular CLI/TUI learning framework for math topics (sta
 - Phase 2 state core is implemented (state model/store, normalization, active pointer, atomic persistence).
 - Phase 3 controllers/runtime orchestration is implemented (app/scene/learning/mod/locale controllers, runtime bootstrap wiring, and startup context loading).
 - Phase 4 TUI scene framework is implemented (interactive menu/navigation loop, state/language/mod scenes, learning hub shell, and controller-driven actions).
+- Phase 5 learning MVP is implemented (statistics scenes, quiz mode switching, concept lessons, and expanded mod-aware flows).
+- Phase 6 hardening pass applied (resolved state load synchronization, centralized state mutations in controllers, improved TUI responsive sizing, and expanded automated test coverage).
 - TUI UX stack now includes Bubble Tea v2, Bubbles components, Lip Gloss styling, Harmonica spring animation, BubbleZone mouse zones, and ntcharts sparklines.
 - Reusable terminal UI primitives are available under `internal/tui/components` (theme, menu renderer, screen layout, status pills) for shared GUI/TUI composition patterns.
 - Scene definitions are moving to data-driven JSON under mods (`mods/core/ui/scenes/*.json`) and are loaded by runtime scene schema loaders.

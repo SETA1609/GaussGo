@@ -11,6 +11,7 @@
 - Keep exported APIs minimal and stable.
 - Return errors with enough context to debug quickly.
 - Prefer simple data structures and explicit control flow.
+- Introduce named types when a raw type is long or hard to read (for example `map[string]any`), especially in contracts and public signatures.
 - Add comments for maintainers, especially on non-obvious logic, contracts, and design decisions.
 
 ## Architecture

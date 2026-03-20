@@ -6,12 +6,11 @@ import (
 	"os"
 	"strings"
 
-	tea "charm.land/bubbletea/v2"
-
 	"gaussgo/internal/apperrors"
 	"gaussgo/internal/bootstrap"
 	"gaussgo/internal/state"
 	"gaussgo/internal/tui"
+	"gaussgo/internal/tui/adapters"
 )
 
 func main() {
@@ -50,8 +49,8 @@ func main() {
 		return
 	}
 
-	p := tea.NewProgram(model)
-	if _, runErr := p.Run(); runErr != nil {
+	program := adapters.NewBubbleTeaProgramFactory().New(model)
+	if runErr := program.Run(); runErr != nil {
 		fmt.Println("tui failed:", runErr)
 		return
 	}

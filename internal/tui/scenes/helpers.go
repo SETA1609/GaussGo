@@ -35,8 +35,13 @@ const (
 	ActionConceptNext       = "concept_next"
 	ActionConceptPrev       = "concept_prev"
 	ActionToggleStatsMod    = "toggle_stats_mod"
+	ActionToggleStatsUnit   = "toggle_stats_unit"
 	ActionSetQuizMode       = "set_quiz_mode"
 	ActionToggleQuizConcept = "toggle_quiz_concept"
+	ActionHelperAdd         = "helper_add"
+	ActionHelperSub         = "helper_sub"
+	ActionHelperMul         = "helper_mul"
+	ActionHelperDiv         = "helper_div"
 	ActionExit              = "exit"
 )
 
@@ -58,6 +63,9 @@ type ViewModel struct {
 	Options  []Option
 }
 
+// RuntimeSnapshot contains the full state of the application required to
+// build any TUI scene. It acts as a projection of the current runtime context,
+// active state, and available assets.
 type RuntimeSnapshot struct {
 	CurrentLocale        string
 	I18n                 contracts.I18nResolver
@@ -75,11 +83,16 @@ type RuntimeSnapshot struct {
 	AvailableStates      []string
 	Progress             map[string]contracts.ModProgress
 	StatsExpandedByMod   map[string]bool
+	StatsExpandedByUnit  map[string]map[string]bool
 	QuizMode             string
 	QuizSelectedConcepts map[string]bool
+	HelperResults        []string
+	HelperCapabilities   []string
 	Flash                string
 }
 
+// Build is the central entry point for generating a ViewModel for any scene ID.
+// It dispatches to specific scene builder functions based on the provided snapshot.
 func Build(sceneID string, s RuntimeSnapshot) ViewModel {
 	switch sceneID {
 	case SceneMainMenu:

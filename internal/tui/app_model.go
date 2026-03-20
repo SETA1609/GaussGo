@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"context"
 	"math"
 	"os"
 	"path/filepath"
@@ -9,37 +10,42 @@ import (
 	"strings"
 	"time"
 
-	bubblespinner "charm.land/bubbles/v2/spinner"
 	tea "charm.land/bubbletea/v2"
 	"github.com/NimbleMarkets/ntcharts/sparkline"
-	"github.com/charmbracelet/harmonica"
-	zone "github.com/lrstanley/bubblezone/v2"
 
 	"gaussgo/internal/bootstrap"
 	"gaussgo/internal/contracts"
 	"gaussgo/internal/i18n"
 	"gaussgo/internal/state"
+	"gaussgo/internal/tui/adapters"
 	"gaussgo/internal/tui/components"
+	"gaussgo/internal/tui/ports"
 	"gaussgo/internal/tui/scenes"
 )
 
 type AppModel struct {
-	runtime     bootstrap.Runtime
-	statesDir   string
-	modsDir     string
-	width       int
-	height      int
-	selectedIdx int
-	snapshot    scenes.RuntimeSnapshot
-	view        scenes.ViewModel
-	spinner     bubblespinner.Model
-	spring      harmonica.Spring
-	animPos     float64
-	animVel     float64
-	spark       sparkline.Model
-	tick        int
-	theme       components.Theme
-	conceptByID map[string]conceptFile
+	runtime         bootstrap.Runtime
+	statesDir       string
+	modsDir         string
+	width           int
+	height          int
+	selectedIdx     int
+	snapshot        scenes.RuntimeSnapshot
+	view            scenes.ViewModel
+	spinner         ports.Spinner
+	spring          ports.Spring
+	zone            ports.Zone
+	animPos         float64
+	animVel         float64
+	spark           sparkline.Model
+	tick            int
+	theme           components.Theme
+	conceptByID     map[string]conceptFile
+	inputMapper     ports.InputMapper
+	renderer        ports.ViewPort
+	layoutMetrics   ports.LayoutMetrics
+	layoutEngine    ports.LayoutEngine
+	sidepanelScroll int
 }
 
 func (m *AppModel) CurrentSceneID() string {
@@ -85,16 +91,21 @@ func NewAppModelWithModsDir(runtime bootstrap.Runtime, statesDir string, modsDir
 	}
 
 	model := &AppModel{
-		runtime:     runtime,
-		statesDir:   statesDir,
-		modsDir:     modsDir,
-		width:       100,
-		height:      40,
-		spinner:     bubblespinner.New(),
-		spring:      harmonica.NewSpring(harmonica.FPS(60), 8.0, 0.7),
-		spark:       sparkline.New(24, 4),
-		theme:       components.DefaultTheme(),
-		conceptByID: map[string]conceptFile{},
+		runtime:       runtime,
+		statesDir:     statesDir,
+		modsDir:       modsDir,
+		width:         100,
+		height:        40,
+		spinner:       adapters.NewCharmSpinner(),
+		spring:        adapters.NewCharmSpring(),
+		zone:          adapters.NewCharmZone(),
+		spark:         sparkline.New(24, 4),
+		theme:         components.DefaultTheme(),
+		conceptByID:   map[string]conceptFile{},
+		inputMapper:   adapters.NewCharmInputMapper(),
+		renderer:      adapters.NewCharmRenderer(),
+		layoutMetrics: adapters.NewCharmLipGlossMetrics(),
+		layoutEngine:  adapters.NewCharmLayoutEngine(),
 		snapshot: scenes.RuntimeSnapshot{
 			CurrentLocale:        runtime.Context.CurrentLocale,
 			I18n:                 i18nResolver,
@@ -105,8 +116,11 @@ func NewAppModelWithModsDir(runtime bootstrap.Runtime, statesDir string, modsDir
 			CurrentUnitID:        runtime.Context.CurrentUnitID,
 			Progress:             map[string]contracts.ModProgress{},
 			StatsExpandedByMod:   map[string]bool{},
+			StatsExpandedByUnit:  map[string]map[string]bool{},
 			QuizMode:             "random",
 			QuizSelectedConcepts: map[string]bool{},
+			HelperResults:        nil,
+			HelperCapabilities:   nil,
 		},
 	}
 
@@ -120,7 +134,7 @@ func NewAppModelWithModsDir(runtime bootstrap.Runtime, statesDir string, modsDir
 	}
 	model.spark.PushAll([]float64{0.2, 0.3, 0.45, 0.5, 0.35, 0.6})
 	model.spark.Draw()
-	zone.NewGlobal()
+	model.zone.Init()
 	if err := model.refreshMods(); err != nil {
 		model.snapshot.Flash = err.Error()
 	}
@@ -129,11 +143,21 @@ func NewAppModelWithModsDir(runtime bootstrap.Runtime, statesDir string, modsDir
 }
 
 func (m *AppModel) Init() tea.Cmd {
-	return tea.Batch(m.spinner.Tick, tickCmd())
+	spinnerCmd, _ := m.spinner.InitCmd().(tea.Cmd)
+	return tea.Batch(spinnerCmd, tickCmd())
 }
 
+// Update handles Bubble Tea messages and updates the application model accordingly.
+// It manages terminal window resizing, animations, and user key inputs.
 func (m *AppModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	switch msg := msg.(type) {
+	if event, ok := m.inputMapper.Map(msg); ok {
+		if quit := m.applyInputEvent(event); quit {
+			return m, tea.Quit
+		}
+		return m, nil
+	}
+
+	switch msg.(type) {
 	case tickMsg:
 		m.tick++
 		next := 0.5 + 0.45*math.Sin(float64(m.tick)/4.0)
@@ -143,39 +167,28 @@ func (m *AppModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.spark.Push(next)
 		m.spark.Draw()
 		return m, tickCmd()
-	case bubblespinner.TickMsg:
-		var cmd tea.Cmd
-		m.spinner, cmd = m.spinner.Update(msg)
-		return m, cmd
-	case tea.KeyMsg:
-		switch msg.String() {
-		case "up", "k":
-			m.MoveUp()
-		case "down", "j":
-			m.MoveDown()
-		case "enter":
-			if quit := m.Select(); quit {
-				return m, tea.Quit
-			}
-		case "esc", "backspace":
-			m.Back()
-		case "q", "ctrl+c":
-			return m, tea.Quit
+	}
+
+	if cmd, handled := m.spinner.Update(msg); handled {
+		teaCmd, ok := cmd.(tea.Cmd)
+		if !ok {
+			return m, nil
 		}
-	case tea.WindowSizeMsg:
-		m.width = msg.Width
-		m.height = msg.Height
-		m.spark.Resize(maxInt(12, minInt(m.width-20, 40)), 4)
-		m.spark.Draw()
+		return m, teaCmd
 	}
 
 	return m, nil
 }
 
 func (m *AppModel) View() tea.View {
-	v := tea.NewView(m.RenderText())
-	v.AltScreen = true
-	v.MouseMode = tea.MouseModeCellMotion
+	rendered := m.renderer.Render(m.RenderText(), ports.ViewConfig{AltScreen: true, MouseMode: adapters.MouseModeCellMotion})
+	v, ok := rendered.(tea.View)
+	if !ok {
+		fallback := tea.NewView(m.RenderText())
+		fallback.AltScreen = true
+		fallback.MouseMode = tea.MouseModeCellMotion
+		return fallback
+	}
 	return v
 }
 
@@ -208,59 +221,130 @@ func (m *AppModel) Back() bool {
 	return m.applyAction(scenes.Action{Type: scenes.ActionBack})
 }
 
+// RenderText generates the final string representation of the TUI.
+// It calculates responsive sizing for the main "card" based on the terminal
+// window dimensions and ensures the content is correctly aligned.
 func (m *AppModel) RenderText() string {
 	target := float64(m.selectedIdx)
 	m.animPos, m.animVel = m.spring.Update(m.animPos, m.animVel, target)
 
-	header := m.spinner.View() + "  scene=" + m.runtime.Context.CurrentSceneID + "  locale=" + m.snapshot.CurrentLocale
-	header = components.RenderStatusPill(m.theme, header)
+	navbar := components.RenderNavbar(m.theme, m.width, m.layoutEngine)
+
+	footer := components.RenderFooter(m.theme, components.FooterData{
+		Hint:   "Controls: j/down, k/up, enter, esc/back, [, ], q",
+		User:   m.snapshot.ActiveStateID, // Using state ID as user for now
+		State:  m.runtime.Context.CurrentSceneID,
+		Locale: m.snapshot.CurrentLocale,
+		Width:  m.width,
+	}, m.layoutEngine)
 
 	menu := make([]components.MenuItem, 0, len(m.view.Options))
 	for idx, option := range m.view.Options {
 		id := "option-" + strconv.Itoa(idx)
 		menu = append(menu, components.MenuItem{ID: id, Label: option.Label, Disabled: option.Disabled})
 	}
-	maxWidth := int(float64(m.width) * 0.8)
-	if m.width < 60 {
-		maxWidth = m.width - 2
-	}
-	if maxWidth < 40 && m.width > 40 {
-		maxWidth = 40
-	}
 
-	maxHeight := int(float64(m.height) * 0.8)
-	if m.height < 25 {
-		maxHeight = m.height - 1
+	sidepanelWidth := 30
+	if m.width < 80 {
+		sidepanelWidth = 0 // Hide sidepanel on small screens
 	}
-	if maxHeight < 10 && m.height > 10 {
-		maxHeight = 10
-	}
+	contentWidth := m.width - sidepanelWidth
 
-	centerY := true
-	if maxHeight >= m.height-2 {
-		centerY = false
-	}
-
-	out := components.RenderScreen(m.theme, components.ScreenData{
-		Title:      m.view.Title,
-		Subtitle:   m.view.Subtitle,
-		Header:     header,
-		Chart:      m.spark.View(),
-		Flash:      m.snapshot.Flash,
-		Lines:      m.view.Lines,
-		Menu:       menu,
-		Selected:   m.selectedIdx,
-		Hint:       "Controls: j/down, k/up, enter, esc/backspace, q",
-		WrapInCard: true,
-		MaxWidth:   maxWidth,
-		MaxHeight:  maxHeight,
-		FullWidth:  m.width,
-		FullHeight: m.height,
-		CenterX:    true,
-		CenterY:    centerY,
+	// Traditional screen data for the main content
+	content := components.RenderScreen(m.theme, components.ScreenData{
+		Title:        m.view.Title,
+		Subtitle:     m.view.Subtitle,
+		Chart:        m.spark.View(),
+		Flash:        m.snapshot.Flash,
+		Lines:        m.view.Lines,
+		Menu:         menu,
+		Selected:     m.selectedIdx,
+		WrapInCard:   true,
+		MaxWidth:     contentWidth - 4,
+		MaxHeight:    m.height - 4,
+		FullWidth:    contentWidth,
+		FullHeight:   m.height - m.layoutMetrics.Height(navbar) - m.layoutMetrics.Height(footer),
+		CenterX:      true,
+		CenterY:      true,
+		MenuRenderer: m.zone,
+		LayoutEngine: m.layoutEngine,
 	})
 
-	return zone.Scan(out)
+	var sidepanel string
+	if sidepanelWidth > 0 {
+		sidepanel = components.RenderSidepanel(m.theme, m.calculateSidepanelData(sidepanelWidth, m.height-6))
+	}
+
+	out := components.RenderMainLayout(m.theme, navbar, footer, content, sidepanel, m.width, m.height, m.layoutEngine)
+	return m.zone.Scan(out)
+}
+
+func (m *AppModel) calculateSidepanelData(width int, height int) components.SidepanelData {
+	var mods []components.ModStats
+	var totalPercent uint64
+	var modCount int
+
+	for modID, progress := range m.snapshot.Progress {
+		if modID == "core" {
+			continue
+		}
+
+		modCount++
+		totalPercent += uint64(progress.ExerciseStats.CorrectnessPercent)
+
+		mod := components.ModStats{
+			ID:       modID,
+			Percent:  progress.ExerciseStats.CorrectnessPercent,
+			Expanded: m.snapshot.StatsExpandedByMod[modID],
+		}
+
+		if mod.Expanded {
+			// In a real app, we'd load unit list and concept stats.
+			// Since we don't have per-unit stats in ModProgress yet, we'll
+			// mock them based on ReadConcepts for this UX demonstration.
+			units, _ := loadUnitIDs(m.modsDir, modID)
+			for _, unitID := range units {
+				unit := components.UnitStats{
+					ID:       unitID,
+					Percent:  0, // Would be calculated if data existed
+					Expanded: m.snapshot.StatsExpandedByUnit[modID][unitID],
+				}
+
+				if unit.Expanded {
+					concepts, _, _ := loadConceptsForUnit(m.modsDir, modID, unitID)
+					for _, conceptID := range concepts {
+						fullID := unitID + "." + conceptID // Simplified namespacing for now, or use types.JoinNamespacedID
+						concept := components.ConceptStats{
+							ID:      conceptID,
+							Percent: 0,
+						}
+						for _, read := range progress.ReadConcepts {
+							if read == fullID {
+								concept.Percent = 100
+								break
+							}
+						}
+						unit.Concepts = append(unit.Concepts, concept)
+					}
+				}
+				mod.Units = append(mod.Units, unit)
+			}
+		}
+		mods = append(mods, mod)
+	}
+
+	avg := 0.0
+	if modCount > 0 {
+		avg = float64(totalPercent) / float64(modCount)
+	}
+
+	return components.SidepanelData{
+		AveragePercent: avg,
+		Mods:           mods,
+		Width:          width,
+		Height:         height,
+		ScrollOffset:   m.sidepanelScroll,
+	}
 }
 
 type tickMsg struct{}
@@ -377,6 +461,15 @@ func (m *AppModel) applyAction(action scenes.Action) bool {
 		}
 	case scenes.ActionToggleStatsMod:
 		m.snapshot.StatsExpandedByMod[action.Value] = !m.snapshot.StatsExpandedByMod[action.Value]
+	case scenes.ActionToggleStatsUnit:
+		parts := strings.Split(action.Value, ":")
+		if len(parts) == 2 {
+			modID, unitID := parts[0], parts[1]
+			if m.snapshot.StatsExpandedByUnit[modID] == nil {
+				m.snapshot.StatsExpandedByUnit[modID] = map[string]bool{}
+			}
+			m.snapshot.StatsExpandedByUnit[modID][unitID] = !m.snapshot.StatsExpandedByUnit[modID][unitID]
+		}
 	case scenes.ActionSetQuizMode:
 		m.snapshot.QuizMode = action.Value
 	case scenes.ActionToggleQuizConcept:
@@ -385,10 +478,76 @@ func (m *AppModel) applyAction(action scenes.Action) bool {
 		}
 	case scenes.ActionExit:
 		return true
+	case scenes.ActionHelperAdd:
+		m.runMathHelper("add", 2, 3)
+	case scenes.ActionHelperSub:
+		m.runMathHelper("sub", 7, 4)
+	case scenes.ActionHelperMul:
+		m.runMathHelper("mul", 6, 5)
+	case scenes.ActionHelperDiv:
+		m.runMathHelper("div", 8, 2)
 	}
 
 	m.render()
 	return false
+}
+
+func (m *AppModel) runMathHelper(op string, a float64, b float64) {
+	if m.runtime.ModRegistry == nil {
+		m.snapshot.Flash = "runtime mod registry unavailable"
+		return
+	}
+
+	coreMod, err := m.runtime.ModRegistry.Get("core")
+	if err != nil {
+		m.snapshot.Flash = "core runtime mod unavailable"
+		return
+	}
+
+	provider, ok := coreMod.(contracts.CapabilityProvider)
+	if !ok {
+		m.snapshot.Flash = "core mod has no capability provider"
+		return
+	}
+
+	raw, exists := provider.Capability(contracts.CapabilityHelpersBasicMath)
+	if !exists {
+		m.snapshot.Flash = "basic math helper capability missing"
+		return
+	}
+
+	mathHelpers, ok := raw.(contracts.BasicMathHelpers)
+	if !ok {
+		m.snapshot.Flash = "invalid basic math helper capability type"
+		return
+	}
+
+	ctx := context.Background()
+	var value float64
+	switch op {
+	case "add":
+		value, err = mathHelpers.Add(ctx, a, b)
+	case "sub":
+		value, err = mathHelpers.Sub(ctx, a, b)
+	case "mul":
+		value, err = mathHelpers.Mul(ctx, a, b)
+	case "div":
+		value, err = mathHelpers.Div(ctx, a, b)
+	default:
+		m.snapshot.Flash = "unknown helper operation"
+		return
+	}
+	if err != nil {
+		m.snapshot.Flash = err.Error()
+		return
+	}
+
+	line := op + "(" + strconv.FormatFloat(a, 'f', -1, 64) + "," + strconv.FormatFloat(b, 'f', -1, 64) + ") = " + strconv.FormatFloat(value, 'f', -1, 64)
+	m.snapshot.HelperResults = append([]string{line}, m.snapshot.HelperResults...)
+	if len(m.snapshot.HelperResults) > 5 {
+		m.snapshot.HelperResults = m.snapshot.HelperResults[:5]
+	}
+	m.snapshot.Flash = "helper executed"
 }
 
 func (m *AppModel) render() {
@@ -397,11 +556,42 @@ func (m *AppModel) render() {
 	m.snapshot.EnabledMods = append([]string(nil), m.runtime.Context.EnabledMods...)
 	m.snapshot.CurrentModID = m.runtime.Context.CurrentModID
 	m.snapshot.CurrentUnitID = m.runtime.Context.CurrentUnitID
+	m.snapshot.HelperCapabilities = m.collectHelperCapabilities()
 	m.snapshot.AvailableStates = listStateIDs(m.statesDir)
 	m.view = scenes.Build(m.runtime.Context.CurrentSceneID, m.snapshot)
 	if m.selectedIdx >= len(m.view.Options) {
 		m.selectedIdx = 0
 	}
+}
+
+func (m *AppModel) collectHelperCapabilities() []string {
+	if m.runtime.ModRegistry == nil {
+		return nil
+	}
+
+	registered := m.runtime.ModRegistry.List()
+	capabilitySet := map[string]struct{}{}
+	for _, runtimeMod := range registered {
+		if catalog, ok := runtimeMod.(contracts.CapabilityCatalog); ok {
+			for _, capability := range catalog.Capabilities() {
+				capabilitySet[string(capability)] = struct{}{}
+			}
+			continue
+		}
+
+		if provider, ok := runtimeMod.(contracts.CapabilityProvider); ok {
+			if provider.HasCapability(contracts.CapabilityHelpersBasicMath) {
+				capabilitySet[string(contracts.CapabilityHelpersBasicMath)] = struct{}{}
+			}
+		}
+	}
+
+	capabilities := make([]string, 0, len(capabilitySet))
+	for capability := range capabilitySet {
+		capabilities = append(capabilities, capability)
+	}
+	sort.Strings(capabilities)
+	return capabilities
 }
 
 func (m *AppModel) refreshMods() error {
@@ -480,6 +670,39 @@ func (m *AppModel) updateCurrentConceptSlide() {
 		m.snapshot.CurrentConceptTitle = concept.Title
 	}
 	m.snapshot.CurrentConceptBody = concept.Explanation
+}
+
+func (m *AppModel) applyInputEvent(event ports.InputEvent) bool {
+	switch event.Type {
+	case ports.InputEventWindowSize:
+		m.width = event.Width
+		m.height = event.Height
+		m.spark.Resize(maxInt(12, minInt(m.width-20, 40)), 4)
+		m.spark.Draw()
+	case ports.InputEventKey:
+		switch event.Key {
+		case ports.KeyUp, ports.KeyK:
+			m.MoveUp()
+		case ports.KeyDown, ports.KeyJ:
+			m.MoveDown()
+		case ports.KeyEnter:
+			if quit := m.Select(); quit {
+				return true
+			}
+		case ports.KeyEsc, ports.KeyBackspace:
+			m.Back()
+		case ports.KeyQ, ports.KeyCtrlC:
+			return true
+		case ports.KeyLeftBracket:
+			if m.sidepanelScroll > 0 {
+				m.sidepanelScroll--
+			}
+		case ports.KeyRightBracket:
+			m.sidepanelScroll++
+		}
+	}
+
+	return false
 }
 
 func maxInt(a int, b int) int {

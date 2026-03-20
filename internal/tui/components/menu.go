@@ -3,7 +3,7 @@ package components
 import (
 	"strings"
 
-	zone "github.com/lrstanley/bubblezone/v2"
+	"gaussgo/internal/tui/ports"
 )
 
 type MenuItem struct {
@@ -12,9 +12,22 @@ type MenuItem struct {
 	Disabled bool
 }
 
+type defaultMenuRenderer struct{}
+
+func (defaultMenuRenderer) Mark(_ string, content string) string {
+	return content
+}
+
 func RenderMenu(theme Theme, items []MenuItem, selected int) string {
+	return RenderMenuWithRenderer(theme, items, selected, defaultMenuRenderer{})
+}
+
+func RenderMenuWithRenderer(theme Theme, items []MenuItem, selected int, renderer ports.MenuRenderer) string {
 	if len(items) == 0 {
 		return ""
+	}
+	if renderer == nil {
+		renderer = defaultMenuRenderer{}
 	}
 
 	var b strings.Builder
@@ -38,7 +51,7 @@ func RenderMenu(theme Theme, items []MenuItem, selected int) string {
 		}
 
 		b.WriteString(cursor)
-		b.WriteString(zone.Mark(zoneID, label))
+		b.WriteString(renderer.Mark(zoneID, label))
 		b.WriteString("\n")
 	}
 

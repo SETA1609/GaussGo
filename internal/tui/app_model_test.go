@@ -265,38 +265,65 @@ func TestAppModelStatisticsExpandCollapse(t *testing.T) {
 	if err != nil {
 		t.Fatalf("new app model: %v", err)
 	}
+
 	// seed progress with a read concept
 	model.snapshot.Progress = map[string]contracts.ModProgress{
 		"linearAlgebra": {
-			ReadConcepts:  []string{"dot-product"},
+			ReadConcepts:  []string{"vectors.dot-product"},
 			ExerciseStats: contracts.ExerciseStats{Attempted: 5, Correct: 4},
 		},
+	}
+	// Initial state for nested toggle
+	model.snapshot.StatsExpandedByUnit["linearAlgebra"] = map[string]bool{"vectors": false}
+
+	// Create necessary unit files for the loader to find
+	unitsDir := filepath.Join(filepath.Dir(statesDir), "mods", "linearAlgebra", "data", "units")
+	if err := os.MkdirAll(unitsDir, 0o755); err != nil {
+		t.Fatalf("mkdir units dir: %v", err)
+	}
+	unitData := `{
+		"id": "vectors",
+		"title": "Vectors",
+		"concepts": [
+			{"id": "dot-product", "title": "Dot Product", "explanation": "..."}
+		]
+	}`
+	if err := os.WriteFile(filepath.Join(unitsDir, "vectors.json"), []byte(unitData), 0o644); err != nil {
+		t.Fatalf("write unit file: %v", err)
 	}
 
 	runtime.Controllers.Scene.Navigate(scenes.SceneStatistics)
 	model.RefreshView()
 
-	// collapsed: concept row absent
-	if strings.Contains(model.RenderText(), "dot-product") {
-		t.Fatal("expected concept row hidden before expand")
+	// collapsed mod: unit row absent
+	if strings.Contains(model.RenderText(), "Toggle Unit: vectors") {
+		t.Fatal("expected unit toggle hidden before mod expand")
 	}
 
-	idx := indexOfOption(model.ViewModel().Options, "Toggle linearAlgebra")
+	idx := indexOfOption(model.ViewModel().Options, "Toggle Mod: linearAlgebra")
 	if idx < 0 {
-		t.Fatal("Toggle linearAlgebra option not found")
+		t.Fatalf("Toggle Mod: linearAlgebra option not found in %#v", model.ViewModel().Options)
 	}
 	model.SetSelectedIndex(idx)
 	_ = model.Select()
 
-	// expanded: concept row present
-	if !strings.Contains(model.RenderText(), "dot-product") {
-		t.Fatal("expected concept row visible after expand")
+	// expanded mod: unit row present
+	text := model.RenderText()
+	if !strings.Contains(text, "Toggle Unit: vectors") {
+		t.Fatalf("expected unit toggle visible after mod expand, got:\n%s", text)
 	}
 
-	// toggle again — collapsed
+	// toggle unit
+	idx = indexOfOption(model.ViewModel().Options, "    Toggle Unit: vectors")
+	if idx < 0 {
+		t.Fatal("Toggle Unit: vectors option not found")
+	}
+	model.SetSelectedIndex(idx)
 	_ = model.Select()
-	if strings.Contains(model.RenderText(), "dot-product") {
-		t.Fatal("expected concept row hidden after second toggle")
+
+	// expanded unit: concept row present (in sidepanel/main lines)
+	if !strings.Contains(model.RenderText(), "dot-product: 100%") {
+		t.Fatal("expected concept row visible after unit expand")
 	}
 }
 
@@ -331,5 +358,44 @@ func TestAppModelQuizModeSelectedConceptsEnablesToggle(t *testing.T) {
 		if opt.Action.Type == scenes.ActionToggleQuizConcept && opt.Disabled {
 			t.Fatalf("expected concept toggle enabled in selected_concepts mode, got disabled: %s", opt.Label)
 		}
+	}
+}
+
+func TestAppModelHelpersRunsCoreMathCapability(t *testing.T) {
+	runtime, statesDir := setupRuntimeForTUI(t)
+	model, err := NewAppModelWithModsDir(runtime, statesDir, filepath.Join(filepath.Dir(statesDir), "mods"))
+	if err != nil {
+		t.Fatalf("new app model: %v", err)
+	}
+
+	runtime.Controllers.Scene.Navigate(scenes.SceneHelpers)
+	model.RefreshView()
+	idx := indexOfOption(model.ViewModel().Options, "Add 2 + 3")
+	if idx < 0 {
+		t.Fatal("missing helper add option")
+	}
+	model.SetSelectedIndex(idx)
+	_ = model.Select()
+
+	if len(model.snapshot.HelperResults) == 0 {
+		t.Fatal("expected helper results to be populated")
+	}
+	if !strings.Contains(model.snapshot.HelperResults[0], "add(2,3) = 5") {
+		t.Fatalf("unexpected helper result: %s", model.snapshot.HelperResults[0])
+	}
+
+	model.RefreshView()
+	if len(model.snapshot.HelperCapabilities) == 0 {
+		t.Fatal("expected helper capabilities to be listed")
+	}
+	found := false
+	for _, capability := range model.snapshot.HelperCapabilities {
+		if capability == string(contracts.CapabilityHelpersBasicMath) {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Fatalf("expected %s capability in list, got %v", contracts.CapabilityHelpersBasicMath, model.snapshot.HelperCapabilities)
 	}
 }

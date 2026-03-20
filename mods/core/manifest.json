@@ -1,0 +1,17 @@
+{
+  "id": "core",
+  "name": "Core Runtime",
+  "version": "0.1.0",
+  "entry": "public",
+  "localization": {
+    "default": "en",
+    "supported": ["en", "es"],
+    "path": "i18n"
+  },
+  "dependencies": [],
+  "provides": [
+    "learning.units.list",
+    "learning.unit.get",
+    "exercise.evaluate"
+  ]
+}

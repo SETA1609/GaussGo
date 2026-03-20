@@ -1,0 +1,43 @@
+{
+  "id": "vectors",
+  "title": "Vectors and Vector Spaces",
+  "description": "Introduction to vectors, operations, linear independence, basis and dimension.",
+  "concepts": [
+    {
+      "id": "vector-basics",
+      "title": "Vector Basics",
+      "explanation": "A vector is an ordered list of numbers. Each coordinate represents a component in a basis.",
+      "examples": [
+        {
+          "input": "[1, 2, 3]",
+          "meaning": "A vector in R^3"
+        }
+      ],
+      "exercise": {
+        "id": "vector-add-1",
+        "type": "multiple_choice",
+        "question": "What is [1,2] + [3,4]?",
+        "options": [
+          "[4,6]",
+          "[2,3]",
+          "[1,1]"
+        ],
+        "answer": "[4,6]"
+      }
+    },
+    {
+      "id": "dot-product",
+      "title": "Dot Product",
+      "explanation": "Dot product measures alignment of two vectors.",
+      "exercise": {
+        "id": "dot-product-1",
+        "type": "compute",
+        "input": {
+          "a": [1, 2],
+          "b": [3, 4]
+        },
+        "expected": 11
+      }
+    }
+  ]
+}

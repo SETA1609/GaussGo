@@ -1,0 +1,21 @@
+{
+  "id": "linearAlgebra",
+  "name": "Linear Algebra",
+  "version": "0.1.0",
+  "entry": "data/units",
+  "localization": {
+    "default": "en",
+    "supported": ["en", "es"],
+    "path": "i18n"
+  },
+  "dependencies": [
+    {
+      "id": "core",
+      "version": ">=0.1.0"
+    }
+  ],
+  "provides": [
+    "learning.units",
+    "exercise.compute"
+  ]
+}

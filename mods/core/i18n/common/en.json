@@ -1,0 +1,45 @@
+{
+  "common": {
+    "back": "Back"
+  },
+  "language": {
+    "english": "English",
+    "spanish": "Spanish"
+  },
+  "menu": {
+    "start_learning": "Start Learning",
+    "create_state": "Create New State",
+    "load_state": "Load Existing State",
+    "select_language": "Select Language",
+    "mod_settings": "Mod Settings",
+    "exit": "Exit"
+  },
+  "lesson": {
+    "order": "mod/unit/concept"
+  },
+  "status": {
+    "locked": "locked",
+    "enabled": "enabled",
+    "unavailable": "unavailable",
+    "disabled": "disabled"
+  },
+  "state": {
+    "core_required": "Core mod is required and always enabled."
+  },
+  "greeting": "Hello, {{name}}!",
+  "itemCount": "You have {{count}} items in your cart.",
+  "apple_one": "{{count}} apple",
+  "apple_other": "{{count}} apples",
+  "friend": "A friend",
+  "friend_male": "A boyfriend",
+  "friend_female": "A girlfriend",
+  "nav": {
+    "home": "Home",
+    "about": "About",
+    "contact": "Contact"
+  },
+  "errors": {
+    "required": "This field is required",
+    "notFound": "Page not found"
+  }
+}

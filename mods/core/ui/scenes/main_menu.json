@@ -1,0 +1,56 @@
+{
+  "titleKey": "scene.main_menu.title",
+  "title": "Main Menu",
+  "subtitleKey": "scene.main_menu.subtitle",
+  "subtitle": "Choose an action",
+  "lines": [
+    {
+      "key": "scene.main_menu.active_state",
+      "fallback": "Active state: ",
+      "source": "activeStateID"
+    },
+    {
+      "key": "scene.main_menu.locale",
+      "fallback": "Locale: ",
+      "source": "currentLocale"
+    }
+  ],
+  "items": [
+    {
+      "labelKey": "menu.start_learning",
+      "label": "Start Learning",
+      "action": "navigate",
+      "value": "mod_select"
+    },
+    {
+      "labelKey": "menu.create_state",
+      "label": "Create New State",
+      "action": "navigate",
+      "value": "state_create"
+    },
+    {
+      "labelKey": "menu.load_state",
+      "label": "Load Existing State",
+      "action": "navigate",
+      "value": "state_load"
+    },
+    {
+      "labelKey": "menu.select_language",
+      "label": "Select Language",
+      "action": "navigate",
+      "value": "language_select"
+    },
+    {
+      "labelKey": "menu.mod_settings",
+      "label": "Mod Settings",
+      "action": "navigate",
+      "value": "mod_settings"
+    },
+    {
+      "labelKey": "menu.exit",
+      "label": "Exit",
+      "action": "exit",
+      "value": ""
+    }
+  ]
+}

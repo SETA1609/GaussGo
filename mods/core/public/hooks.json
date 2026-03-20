@@ -1,0 +1,41 @@
+{
+  "apiVersion": 1,
+  "hooks": [
+    {
+      "name": "learning.units.list",
+      "input": {},
+      "output": {
+        "units": [
+          {
+            "id": "string",
+            "title": "string",
+            "description": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "learning.unit.get",
+      "input": {
+        "unitId": "string"
+      },
+      "output": {
+        "id": "string",
+        "title": "string",
+        "concepts": []
+      }
+    },
+    {
+      "name": "exercise.evaluate",
+      "input": {
+        "exerciseId": "string",
+        "answer": "any"
+      },
+      "output": {
+        "correct": true,
+        "score": 1,
+        "feedback": "string"
+      }
+    }
+  ]
+}

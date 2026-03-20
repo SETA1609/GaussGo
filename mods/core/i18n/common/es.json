@@ -1,0 +1,45 @@
+{
+  "common": {
+    "back": "Volver"
+  },
+  "language": {
+    "english": "Ingles",
+    "spanish": "Espanol"
+  },
+  "menu": {
+    "start_learning": "Empezar a Aprender",
+    "create_state": "Crear Nuevo Estado",
+    "load_state": "Cargar Estado Existente",
+    "select_language": "Seleccionar Idioma",
+    "mod_settings": "Configuracion de Mods",
+    "exit": "Salir"
+  },
+  "lesson": {
+    "order": "mod/unidad/concepto"
+  },
+  "status": {
+    "locked": "bloqueado",
+    "enabled": "habilitado",
+    "unavailable": "no disponible",
+    "disabled": "deshabilitado"
+  },
+  "state": {
+    "core_required": "El mod core es obligatorio y siempre esta habilitado."
+  },
+  "greeting": "Hola, {{name}}!",
+  "itemCount": "Tienes {{count}} elementos en tu carrito.",
+  "apple_one": "{{count}} manzana",
+  "apple_other": "{{count}} manzanas",
+  "friend": "Un amigo",
+  "friend_male": "Un novio",
+  "friend_female": "Una novia",
+  "nav": {
+    "home": "Inicio",
+    "about": "Acerca de",
+    "contact": "Contacto"
+  },
+  "errors": {
+    "required": "Este campo es obligatorio",
+    "notFound": "Pagina no encontrada"
+  }
+}

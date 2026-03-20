@@ -1,0 +1,35 @@
+{
+  "titleKey": "scene.language.title",
+  "title": "Select Language",
+  "subtitleKey": "scene.language.subtitle",
+  "subtitle": "Language applies to current state",
+  "lines": [
+    {
+      "key": "scene.language.current",
+      "fallback": "Current: ",
+      "source": "currentLocale"
+    }
+  ],
+  "items": [
+    {
+      "labelKey": "language.english",
+      "label": "English",
+      "action": "set_locale",
+      "value": "en",
+      "disabledIf": "locale_en"
+    },
+    {
+      "labelKey": "language.spanish",
+      "label": "Espanol",
+      "action": "set_locale",
+      "value": "es",
+      "disabledIf": "locale_es"
+    },
+    {
+      "labelKey": "common.back",
+      "label": "Back",
+      "action": "back",
+      "value": ""
+    }
+  ]
+}

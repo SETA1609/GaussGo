@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"context"
 	"strings"
 
 	"gaussgo/internal/apperrors"
@@ -12,18 +13,19 @@ import (
 var _ contracts.ModController = (*ModController)(nil)
 
 type ModController struct {
-	modsDir  string
-	state    contracts.StateStore
-	ctx      *types.RuntimeContext
-	logger   contracts.LoggingService
-	eventBus contracts.EventBusService
+	modsDir   string
+	state     contracts.StateStore
+	ctx       *types.RuntimeContext
+	logger    contracts.LoggingService
+	eventBus  contracts.EventBusService
+	lifecycle *mods.RuntimeLifecycle
 }
 
-func NewModController(modsDir string, stateStore contracts.StateStore, ctx *types.RuntimeContext, logger contracts.LoggingService, eventBus contracts.EventBusService) *ModController {
+func NewModController(modsDir string, stateStore contracts.StateStore, ctx *types.RuntimeContext, logger contracts.LoggingService, eventBus contracts.EventBusService, lifecycle *mods.RuntimeLifecycle) *ModController {
 	if ctx == nil {
 		ctx = &types.RuntimeContext{}
 	}
-	return &ModController{modsDir: modsDir, state: stateStore, ctx: ctx, logger: logger, eventBus: eventBus}
+	return &ModController{modsDir: modsDir, state: stateStore, ctx: ctx, logger: logger, eventBus: eventBus, lifecycle: lifecycle}
 }
 
 func (c *ModController) Enable(modID string) error {
@@ -50,6 +52,28 @@ func (c *ModController) Enable(modID string) error {
 	}
 	if err := c.state.Save(st); err != nil {
 		return err
+	}
+
+	if c.lifecycle != nil {
+		manifests, discoverErr := mods.Discover(c.modsDir)
+		if discoverErr != nil {
+			st.EnabledMods = removeValue(st.EnabledMods, modID)
+			_ = c.state.Save(st)
+			return discoverErr
+		}
+
+		enabled := enabledSet(st.EnabledMods)
+		runtimeCopy := copyRuntimeContext(c.ctx, st.EnabledMods)
+		if syncErr := c.lifecycle.SyncEnabled(context.Background(), manifests, runtimeCopy, enabled, nil); syncErr != nil {
+			st.EnabledMods = removeValue(st.EnabledMods, modID)
+			_ = c.state.Save(st)
+			c.ctx.EnabledMods = append([]string(nil), st.EnabledMods...)
+			emitEvent(c.eventBus, c.logger, EventModsToggled, "mod_controller", map[string]any{"modId": modID, "enabled": false, "reason": "runtime_init_failed"})
+			if c.logger != nil {
+				c.logger.Warn("mod enable rolled back after runtime init failure", map[string]any{"modId": modID, "error": syncErr.Error()})
+			}
+			return syncErr
+		}
 	}
 
 	c.ctx.EnabledMods = append([]string(nil), st.EnabledMods...)
@@ -87,6 +111,14 @@ func (c *ModController) Disable(modID string) error {
 		return err
 	}
 
+	if c.lifecycle != nil {
+		if unloadErr := c.lifecycle.UnloadMod(context.Background(), modID); unloadErr != nil {
+			if c.logger != nil {
+				c.logger.Warn("runtime unload failed for disabled mod", map[string]any{"modId": modID, "error": unloadErr.Error()})
+			}
+		}
+	}
+
 	c.ctx.EnabledMods = append([]string(nil), st.EnabledMods...)
 	if c.ctx.CurrentModID == modID {
 		c.ctx.CurrentModID = ""
@@ -122,6 +154,21 @@ func (c *ModController) Refresh() ([]contracts.ModStatus, error) {
 	}
 
 	c.ctx.EnabledMods = enabledFromStatuses(statuses)
+
+	if c.lifecycle != nil {
+		manifests, discoverErr := mods.Discover(c.modsDir)
+		if discoverErr != nil {
+			return nil, discoverErr
+		}
+		runtimeCopy := copyRuntimeContext(c.ctx, st.EnabledMods)
+		if syncErr := c.lifecycle.SyncEnabled(context.Background(), manifests, runtimeCopy, enabled, nil); syncErr != nil {
+			if c.logger != nil {
+				c.logger.Warn("runtime mod sync failed after refresh", map[string]any{"error": syncErr.Error()})
+			}
+			return nil, syncErr
+		}
+	}
+
 	validCount, invalidCount := summarizeRefreshCounts(statuses)
 	emitEvent(c.eventBus, c.logger, EventModsRefreshed, "mod_controller", map[string]any{
 		"total":   len(statuses),
@@ -190,4 +237,37 @@ func summarizeRefreshCounts(statuses []contracts.ModStatus) (valid int, invalid 
 		}
 	}
 	return valid, invalid
+}
+
+func enabledSet(enabledMods []string) map[string]bool {
+	out := make(map[string]bool, len(enabledMods))
+	for _, modID := range enabledMods {
+		out[modID] = true
+	}
+	return out
+}
+
+func removeValue(values []string, target string) []string {
+	result := make([]string, 0, len(values))
+	for _, value := range values {
+		if value != target {
+			result = append(result, value)
+		}
+	}
+	return result
+}
+
+func copyRuntimeContext(ctx *types.RuntimeContext, enabledMods []string) types.RuntimeContext {
+	if ctx == nil {
+		return types.RuntimeContext{EnabledMods: append([]string(nil), enabledMods...)}
+	}
+	return types.RuntimeContext{
+		ActiveStateID:    ctx.ActiveStateID,
+		EnabledMods:      append([]string(nil), enabledMods...),
+		CurrentSceneID:   ctx.CurrentSceneID,
+		CurrentModID:     ctx.CurrentModID,
+		CurrentUnitID:    ctx.CurrentUnitID,
+		CurrentConceptID: ctx.CurrentConceptID,
+		CurrentLocale:    ctx.CurrentLocale,
+	}
 }

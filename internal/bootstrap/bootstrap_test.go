@@ -86,6 +86,12 @@ func TestBootstrapRuntimeLoadsActiveState(t *testing.T) {
 	if runtime.Controllers.Scene.Current() != "main_menu" {
 		t.Fatalf("expected scene main_menu, got %s", runtime.Controllers.Scene.Current())
 	}
+	if runtime.ModRegistry == nil {
+		t.Fatal("expected runtime mod registry to be initialized")
+	}
+	if len(runtime.ModRegistry.List()) != 1 {
+		t.Fatalf("expected 1 runtime mod loaded, got %d", len(runtime.ModRegistry.List()))
+	}
 }
 
 func TestBootstrapRuntimeFailsWithoutActiveState(t *testing.T) {

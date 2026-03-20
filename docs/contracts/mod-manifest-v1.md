@@ -14,6 +14,7 @@
   - `path` directory relative to mod root
 - `localization.default` must be present in `localization.supported`.
 - `core` mod must exist in runtime and cannot depend on other mods.
+- Every non-core mod must declare dependency on `core`.
 - Dependency list entries contain `id` and semver range `version`.
 
 ## Validation Rules
@@ -22,6 +23,7 @@
 - Reject invalid semver in `version` or dependency ranges.
 - Reject missing/invalid `localization.default`, `localization.supported`, `localization.path`.
 - Reject manifests where dependency `id == manifest.id`.
+- Reject non-core manifests that do not declare `core` as dependency.
 - Reject unresolved dependencies at graph resolution time.
 
 ## Example Payload
